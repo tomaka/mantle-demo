@@ -53,7 +53,7 @@ fn main() {
         queue
     };
 
-    let (image, mem) = unsafe {
+    let (image, _mem) = unsafe {
         let infos = ffi::GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO {
             format: ffi::GR_FORMAT {
                 channelFormat: 8,

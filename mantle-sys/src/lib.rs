@@ -11,12 +11,16 @@ pub type GR_UINT32 = libc::uint32_t;
 pub type GR_SIZE = libc::size_t;
 pub type GR_ENUM = libc::uint32_t;
 pub type GR_VOID = libc::c_void;
+pub type GR_FLOAT = libc::c_float;
+
 pub type GR_PHYSICAL_GPU = libc::uint64_t;      // FIXME: not sure with 32/64bits
 pub type GR_DEVICE = libc::uint64_t;      // FIXME: not sure with 32/64bits
 pub type GR_WSI_WIN_DISPLAY = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_IMAGE = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_GPU_MEMORY = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_QUEUE = libc::uint64_t;       // FIXME: not sure with 32/64bits
+pub type GR_CMD_BUFFER = libc::uint64_t;       // FIXME: not sure with 32/64bits
+pub type GR_FENCE = libc::uint64_t;       // FIXME: not sure with 32/64bits
 
 pub type GR_FLAGS = libc::c_uint;       // FIXME: total guess
 
@@ -166,6 +170,27 @@ pub struct GR_WSI_WIN_PRESENT_INFO {
     pub flags: GR_FLAGS,
 }
 
+#[repr(C)]
+pub struct GR_CMD_BUFFER_CREATE_INFO {
+    pub queueType: GR_ENUM,
+    pub flags: GR_FLAGS,
+}
+
+#[repr(C)]
+pub struct GR_MEMORY_REF {
+    pub mem: GR_GPU_MEMORY,
+    pub flags: GR_FLAGS,
+}
+
+#[repr(C)]
+pub struct GR_IMAGE_SUBRESOURCE_RANGE {
+    pub aspect: GR_ENUM,
+    pub baseMipLevel: GR_UINT,
+    pub mipLevels: GR_UINT,
+    pub baseArraySlice: GR_UINT,
+    pub arraySize: GR_UINT,
+}
+
 extern {
     pub fn grInitAndEnumerateGpus(pAppInfo: *const GR_APPLICATION_INFO,
                                   pAllocCb: *const GR_ALLOC_CALLBACKS, pGpuCount: *mut GR_UINT,
@@ -188,4 +213,18 @@ extern {
 
     pub fn grGetDeviceQueue(device: GR_DEVICE, queueType: GR_ENUM, queueId: GR_UINT,
                             queue: *mut GR_QUEUE) -> GR_RESULT;
+
+    pub fn grCmdClearColorTarget(cmdBuffer: GR_CMD_BUFFER, image: GR_IMAGE, color: *const GR_FLOAT,
+                                 rangeCount: GR_UINT, pRanges: *const GR_IMAGE_SUBRESOURCE_RANGE);
+
+    pub fn grCreateCommandBuffer(device: GR_DEVICE, pCreateInfo: *const GR_CMD_BUFFER_CREATE_INFO,
+                                 pCmdBuffer: *mut GR_CMD_BUFFER) -> GR_RESULT;
+
+    pub fn grBeginCommandBuffer(cmdBuffer: GR_CMD_BUFFER, flags: GR_FLAGS) -> GR_RESULT;
+
+    pub fn grEndCommandBuffer(cmdBuffer: GR_CMD_BUFFER) -> GR_RESULT;
+
+    pub fn grQueueSubmit(queue: GR_QUEUE, cmdBufferCount: GR_UINT,
+                         pCmdBuffers: *const GR_CMD_BUFFER, memRefCount: GR_UINT,
+                         pMemRefs: *const GR_MEMORY_REF, fence: GR_FENCE);
 }
