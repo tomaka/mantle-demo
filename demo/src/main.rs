@@ -30,6 +30,12 @@ fn main() {
         gpus
     };
 
+    unsafe {
+        let ext: &'static [u8] = b"GR_WSI_WINDOWS\0";
+        check_result(ffi::grGetExtensionSupport(gpus[0], ext.as_ptr() as *const i8))
+                     .unwrap();
+    }
+
     let device = {
         let queue_info = ffi::GR_DEVICE_QUEUE_CREATE_INFO {
             queueType: ffi::GR_QUEUE_TYPE::GR_QUEUE_UNIVERSAL,
@@ -129,7 +135,7 @@ fn main() {
 
     unsafe {
         check_result(ffi::grBeginCommandBuffer(cmd_buffer, 0)).unwrap();
-        
+
         let transition = ffi::GR_IMAGE_STATE_TRANSITION {
             image: image,
             oldState: ffi::GR_WSI_WIN_IMAGE_STATE_PRESENT_WINDOWED,

@@ -274,4 +274,6 @@ extern {
 
     pub fn grCmdPrepareImages(cmdBuffer: GR_CMD_BUFFER, transitionCount: GR_UINT,
                               pStateTransitions: *const GR_IMAGE_STATE_TRANSITION);
+
+    pub fn grGetExtensionSupport(gpu: GR_PHYSICAL_GPU, pExtName: *const GR_CHAR) -> GR_RESULT;
 }
