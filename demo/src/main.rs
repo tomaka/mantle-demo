@@ -75,7 +75,7 @@ fn main() {
         let infos = ffi::GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO {
             format: ffi::GR_FORMAT {
                 channelFormat: 8,
-                numericFormat: 3,
+                numericFormat: 1,
             },
             usage: ffi::GR_IMAGE_USAGE_COLOR_TARGET,
             extent: ffi::GR_EXTENT2D {
