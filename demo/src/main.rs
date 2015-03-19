@@ -36,8 +36,8 @@ fn main() {
             pRequestedQueues: &queue_info,
             extensionCount: 1,
             ppEnabledExtensionNames: unsafe { mem::transmute(&b"GR_WSI_WINDOWS\0") },
-            maxValidationLevel: ffi::GR_VALIDATION_LEVEL::GR_VALIDATION_LEVEL_0,
-            flags: 0,
+            maxValidationLevel: ffi::GR_VALIDATION_LEVEL::GR_VALIDATION_LEVEL_4,
+            flags: ffi::GR_DEVICE_CREATE_VALIDATION,
         };
 
         let mut device: ffi::GR_DEVICE = 0;
@@ -53,7 +53,7 @@ fn main() {
         queue
     };
 
-    let (image, _mem) = unsafe {
+    let (image, image_mem) = unsafe {
         let infos = ffi::GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO {
             format: ffi::GR_FORMAT {
                 channelFormat: 8,
@@ -75,19 +75,56 @@ fn main() {
         (image, mem)
     };
 
-    unsafe {
-        let infos = ffi::GR_WSI_WIN_PRESENT_INFO {
-            hWndDest: window,
-            srcImage: image,
-            presentMode: ffi::GR_WSI_WIN_PRESENT_MODE_WINDOWED,
-            presentInterval: 0,
+    let cmd_buffer = unsafe {
+        let infos = ffi::GR_CMD_BUFFER_CREATE_INFO {
+            queueType: ffi::GR_QUEUE_UNIVERSAL,
             flags: 0,
         };
 
-        check_result(ffi::grWsiWinQueuePresent(queue, &infos)).unwrap();
+        let mut cmd = mem::uninitialized();
+        check_result(ffi::grCreateCommandBuffer(device, &infos, &mut cmd)).unwrap();
+        cmd
+    };
+
+    unsafe {
+        check_result(ffi::grBeginCommandBuffer(cmd_buffer, 0)).unwrap();
+
+        let color = [0.0, 0.0, 1.0, 1.0];
+        let range = ffi::GR_IMAGE_SUBRESOURCE_RANGE {
+            aspect: ffi::GR_IMAGE_ASPECT_COLOR,
+            baseMipLevel: 0,
+            mipLevels: 1,
+            baseArraySlice: 0,
+            arraySize: 1,
+        };
+
+        ffi::grCmdClearColorImage(cmd_buffer, image, color.as_ptr(), 1, &range);
+
+        check_result(ffi::grEndCommandBuffer(cmd_buffer)).unwrap();
     }
 
-    loop {}
+    loop {
+        unsafe {
+            let mem = ffi::GR_MEMORY_REF {
+                mem: image_mem,
+                flags: 0,
+            };
+
+            check_result(ffi::grQueueSubmit(queue, 1, &cmd_buffer, 1, &mem, 0)).unwrap();
+        }
+
+        unsafe {
+            let infos = ffi::GR_WSI_WIN_PRESENT_INFO {
+                hWndDest: window,
+                srcImage: image,
+                presentMode: ffi::GR_WSI_WIN_PRESENT_MODE_WINDOWED,
+                presentInterval: 0,
+                flags: 0,
+            };
+
+            check_result(ffi::grWsiWinQueuePresent(queue, &infos)).unwrap();
+        }
+    }
 }
 
 fn check_result(value: ffi::GR_RESULT) -> Result<(), String> {

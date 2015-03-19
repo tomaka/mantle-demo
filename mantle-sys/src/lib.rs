@@ -104,6 +104,14 @@ pub const GR_WSI_WIN_PRESENT_MODE_FULLSCREEN: GR_ENUM = 0x00200201;
 pub const GR_QUEUE_UNIVERSAL: GR_ENUM = 0x1000;
 pub const GR_QUEUE_COMPUTE: GR_ENUM = 0x1001;
 
+// GR_IMAGE_ASPECT
+pub const GR_IMAGE_ASPECT_COLOR: GR_ENUM = 0x1700;
+pub const GR_IMAGE_ASPECT_DEPTH: GR_ENUM = 0x1701;
+pub const GR_IMAGE_ASPECT_STENCIL: GR_ENUM = 0x1702;
+
+// GR_DEVICE_CREATE_FLAGS
+pub const GR_DEVICE_CREATE_VALIDATION: GR_ENUM = 0x00000001;
+
 // these are not guesses anymore (TODO: remove this comment)
 pub type GR_ALLOC_FUNCTION = extern "stdcall" fn(GR_SIZE, GR_SIZE, GR_ENUM) -> *mut GR_VOID;
 pub type GR_FREE_FUNCTION = extern "stdcall" fn(*mut GR_VOID);
@@ -214,7 +222,7 @@ extern {
     pub fn grGetDeviceQueue(device: GR_DEVICE, queueType: GR_ENUM, queueId: GR_UINT,
                             queue: *mut GR_QUEUE) -> GR_RESULT;
 
-    pub fn grCmdClearColorTarget(cmdBuffer: GR_CMD_BUFFER, image: GR_IMAGE, color: *const GR_FLOAT,
+    pub fn grCmdClearColorImage(cmdBuffer: GR_CMD_BUFFER, image: GR_IMAGE, color: *const GR_FLOAT,
                                  rangeCount: GR_UINT, pRanges: *const GR_IMAGE_SUBRESOURCE_RANGE);
 
     pub fn grCreateCommandBuffer(device: GR_DEVICE, pCreateInfo: *const GR_CMD_BUFFER_CREATE_INFO,
@@ -226,5 +234,5 @@ extern {
 
     pub fn grQueueSubmit(queue: GR_QUEUE, cmdBufferCount: GR_UINT,
                          pCmdBuffers: *const GR_CMD_BUFFER, memRefCount: GR_UINT,
-                         pMemRefs: *const GR_MEMORY_REF, fence: GR_FENCE);
+                         pMemRefs: *const GR_MEMORY_REF, fence: GR_FENCE) -> GR_RESULT;
 }
