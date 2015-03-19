@@ -4,23 +4,30 @@ use std::mem;
 use std::ptr;
 
 fn main() {
-    for v in (0 .. 0xffffusize) {
-        println!("{}", v);
+    let gpus = unsafe {
+        let mut appinfos: ffi::GR_APPLICATION_INFO = mem::zeroed();
+        appinfos.apiVersion = ffi::GR_API_VERSION;
 
-        unsafe {
-            let mut appinfos: ffi::GR_APPLICATION_INFO = mem::zeroed();
-            //appInfo.apiVersion = GR_API_VERSION;
-            appinfos.apiVersion = v as u32;      // FIXME: total guess
+        let mut gpus = Vec::with_capacity(ffi::GR_MAX_PHYSICAL_GPUS);
+        let mut gpus_count = 2;
 
-            let mut gpus = [ptr::null() ; ffi::GR_MAX_PHYSICAL_GPUS];
-            let mut gpus_count = 0;
+        let result = ffi::grInitAndEnumerateGpus(&appinfos, ptr::null(), &mut gpus_count,
+                                                 gpus.as_mut_ptr());
+        check_result(result).unwrap();
 
-            let result = ffi::grInitAndEnumerateGpus(&appinfos, ptr::null(), &mut gpus_count,
-                                                     gpus.as_mut_ptr());
+        gpus.set_len(gpus_count as usize);
+        gpus
+    };
 
-            println!("{:?} {}", result, gpus_count);
-        }
-    }
+    println!("{:?}", gpus);
 
     println!("Hello, world!");
 }
+
+fn check_result(value: ffi::GR_RESULT) -> Result<(), String> {
+    match value {
+        ffi::GR_RESULT::GR_SUCCESS => Ok(()),
+        c => Err(format!("{:?}", c))
+    }
+}
+

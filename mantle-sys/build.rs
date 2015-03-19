@@ -1,3 +1,3 @@
 fn main() {
-    println!("cargo:rustc-flags=-l mantle32 -L C:\\Windows\\SysWOW64");
+    println!("cargo:rustc-flags=-l mantle64 -L C:\\Windows\\System32");
 }
