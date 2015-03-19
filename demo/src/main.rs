@@ -6,8 +6,13 @@ extern crate winapi;
 
 use std::mem;
 use std::ptr;
+use std::ffi::CStr;
 
 fn main() {
+    unsafe {
+        check_result(ffi::grDbgRegisterMsgCallback(debug_callback, ptr::null_mut())).unwrap();
+    }
+
     let window = unsafe { create_window() };
 
     let gpus = unsafe {
@@ -174,8 +179,19 @@ unsafe fn register_window_class() -> Vec<u16> {
     class_name
 }
 
-pub extern "system" fn callback(window: winapi::HWND, msg: winapi::UINT,
-                                wparam: winapi::WPARAM, lparam: winapi::LPARAM) -> winapi::LRESULT
+extern "system" fn callback(window: winapi::HWND, msg: winapi::UINT,
+                            wparam: winapi::WPARAM, lparam: winapi::LPARAM) -> winapi::LRESULT
 {
     unsafe { user32::DefWindowProcW(window, msg, wparam, lparam) }
+}
+
+extern "stdcall" fn debug_callback(_msg_type: ffi::GR_ENUM, _validation_level: ffi::GR_ENUM,
+                                   _src_object: ffi::GR_BASE_OBJECT, location: ffi::GR_SIZE,
+                                   msg_code: ffi::GR_ENUM, msg: *const ffi::GR_CHAR,
+                                   user_data: *mut ffi::GR_VOID)
+{
+    unsafe {
+        let msg = CStr::from_ptr(msg);
+        println!("Mantle debug message: {}", String::from_utf8(msg.to_bytes().to_vec()).unwrap());
+    }
 }

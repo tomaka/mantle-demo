@@ -21,6 +21,7 @@ pub type GR_GPU_MEMORY = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_QUEUE = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_CMD_BUFFER = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_FENCE = libc::uint64_t;       // FIXME: not sure with 32/64bits
+pub type GR_BASE_OBJECT = libc::uint64_t;       // FIXME: not sure with 32/64bits
 
 pub type GR_FLAGS = libc::c_uint;       // FIXME: total guess
 
@@ -112,9 +113,11 @@ pub const GR_IMAGE_ASPECT_STENCIL: GR_ENUM = 0x1702;
 // GR_DEVICE_CREATE_FLAGS
 pub const GR_DEVICE_CREATE_VALIDATION: GR_ENUM = 0x00000001;
 
-// these are not guesses anymore (TODO: remove this comment)
 pub type GR_ALLOC_FUNCTION = extern "stdcall" fn(GR_SIZE, GR_SIZE, GR_ENUM) -> *mut GR_VOID;
 pub type GR_FREE_FUNCTION = extern "stdcall" fn(*mut GR_VOID);
+pub type GR_DBG_MSG_CALLBACK_FUNCTION = extern "stdcall" fn(GR_ENUM, GR_ENUM, GR_BASE_OBJECT,
+                                                            GR_SIZE, GR_ENUM, *const GR_CHAR,
+                                                            *mut GR_VOID);
 
 #[repr(C)]
 pub struct GR_APPLICATION_INFO {
@@ -235,4 +238,7 @@ extern {
     pub fn grQueueSubmit(queue: GR_QUEUE, cmdBufferCount: GR_UINT,
                          pCmdBuffers: *const GR_CMD_BUFFER, memRefCount: GR_UINT,
                          pMemRefs: *const GR_MEMORY_REF, fence: GR_FENCE) -> GR_RESULT;
+
+    pub fn grDbgRegisterMsgCallback(pfnMsgCallback: GR_DBG_MSG_CALLBACK_FUNCTION,
+                                    pUserData: *mut GR_VOID) -> GR_RESULT;
 }
