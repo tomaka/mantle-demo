@@ -4,6 +4,7 @@
 extern crate libc;
 
 pub type GR_CHAR = libc::c_char;
+pub type GR_INT = libc::c_int;      // FIXME: not sure with 32/64bits
 pub type GR_UINT = libc::c_uint;      // FIXME: not sure with 32/64bits
 pub type GR_UINT32 = libc::uint32_t;
 pub type GR_SIZE = libc::size_t;
@@ -11,6 +12,9 @@ pub type GR_ENUM = libc::uint32_t;
 pub type GR_VOID = libc::c_void;
 pub type GR_PHYSICAL_GPU = libc::uint64_t;      // FIXME: not sure with 32/64bits
 pub type GR_DEVICE = libc::uint64_t;      // FIXME: not sure with 32/64bits
+pub type GR_WSI_WIN_DISPLAY = libc::uint64_t;       // FIXME: not sure with 32/64bits
+pub type GR_IMAGE = libc::uint64_t;       // FIXME: not sure with 32/64bits
+pub type GR_GPU_MEMORY = libc::uint64_t;       // FIXME: not sure with 32/64bits
 
 pub type GR_FLAGS = libc::c_uint;       // FIXME: total guess
 
@@ -113,6 +117,28 @@ pub struct GR_DEVICE_CREATE_INFO {
     pub flags: GR_FLAGS,
 }
 
+#[repr(C)]
+pub struct GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO {
+    pub format: GR_FORMAT,
+    pub usage: GR_FLAGS,
+    pub extent: GR_EXTENT2D,
+    pub display: GR_WSI_WIN_DISPLAY,
+    pub flags: GR_FLAGS,
+}
+
+#[repr(C)]
+pub struct GR_FORMAT {
+    // FIXME: not sure about the order
+    pub channelFormat: libc::uint16_t,
+    pub numericFormat: libc::uint16_t,
+}
+
+#[repr(C)]
+pub struct GR_EXTENT2D {
+    pub width: GR_INT,
+    pub height: GR_INT,
+}
+
 extern {
     pub fn grInitAndEnumerateGpus(pAppInfo: *const GR_APPLICATION_INFO,
                                   pAllocCb: *const GR_ALLOC_CALLBACKS, pGpuCount: *mut GR_UINT,
@@ -120,4 +146,9 @@ extern {
 
     pub fn grCreateDevice(gpu: GR_PHYSICAL_GPU, pCreateInfo: *const GR_DEVICE_CREATE_INFO,
                           pDevice: *mut GR_DEVICE) -> GR_RESULT;
+
+
+    pub fn grWsiWinCreatePresentableImage(device: GR_DEVICE, pCreateInfo: *const
+                                          GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO,
+                                          pImage: *mut GR_IMAGE, pMem: *mut GR_GPU_MEMORY);
 }
