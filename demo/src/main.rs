@@ -19,9 +19,27 @@ fn main() {
         gpus
     };
 
-    println!("{:?}", gpus);
+    let device = {
+        let queue_info = ffi::GR_DEVICE_QUEUE_CREATE_INFO {
+            queueType: ffi::GR_QUEUE_TYPE::GR_QUEUE_UNIVERSAL,
+            queueCount: 1,
+        };
 
-    println!("Hello, world!");
+        let device_info = ffi::GR_DEVICE_CREATE_INFO {
+            queueRecordCount: 1,
+            pRequestedQueues: &queue_info,
+            extensionCount: 1,
+            ppEnabledExtensionNames: unsafe { mem::transmute(&b"GR_WSI_WINDOWS\0") },
+            maxValidationLevel: ffi::GR_VALIDATION_LEVEL::GR_VALIDATION_LEVEL_0,
+            flags: 0,
+        };
+
+        let mut device: ffi::GR_DEVICE = 0;
+        unsafe {
+            check_result(ffi::grCreateDevice(gpus[0], &device_info, &mut device)).unwrap();
+        }
+        device
+    };
 }
 
 fn check_result(value: ffi::GR_RESULT) -> Result<(), String> {

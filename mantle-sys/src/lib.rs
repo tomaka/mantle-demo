@@ -10,6 +10,9 @@ pub type GR_SIZE = libc::size_t;
 pub type GR_ENUM = libc::uint32_t;
 pub type GR_VOID = libc::c_void;
 pub type GR_PHYSICAL_GPU = libc::uint64_t;      // FIXME: not sure with 32/64bits
+pub type GR_DEVICE = libc::uint64_t;      // FIXME: not sure with 32/64bits
+
+pub type GR_FLAGS = libc::c_uint;       // FIXME: total guess
 
 pub const GR_MAX_PHYSICAL_GPUS: usize = 4;
 pub const GR_API_VERSION: u32 = 1;      // FIXME: this was guessed
@@ -60,6 +63,21 @@ pub enum GR_RESULT {
     GR_ERROR_NOT_SHAREABLE
 }
 
+#[repr(C)]
+pub enum GR_QUEUE_TYPE {
+    GR_QUEUE_UNIVERSAL = 0x1000,
+    GR_QUEUE_COMPUTE = 0x1001,
+}
+
+#[repr(C)]
+pub enum GR_VALIDATION_LEVEL {
+    GR_VALIDATION_LEVEL_0 = 0x8000,
+    GR_VALIDATION_LEVEL_1 = 0x8001,
+    GR_VALIDATION_LEVEL_2 = 0x8002,
+    GR_VALIDATION_LEVEL_3 = 0x8003,
+    GR_VALIDATION_LEVEL_4 = 0x8004,
+}
+
 // these are not guesses anymore (TODO: remove this comment)
 pub type GR_ALLOC_FUNCTION = extern "stdcall" fn(GR_SIZE, GR_SIZE, GR_ENUM) -> *mut GR_VOID;
 pub type GR_FREE_FUNCTION = extern "stdcall" fn(*mut GR_VOID);
@@ -79,8 +97,27 @@ pub struct GR_ALLOC_CALLBACKS {
     pub pfnFree: GR_FREE_FUNCTION,
 }
 
+#[repr(C)]
+pub struct GR_DEVICE_QUEUE_CREATE_INFO {
+    pub queueType: GR_QUEUE_TYPE,
+    pub queueCount: GR_UINT,
+}
+
+#[repr(C)]
+pub struct GR_DEVICE_CREATE_INFO {
+    pub queueRecordCount: GR_UINT,
+    pub pRequestedQueues: *const GR_DEVICE_QUEUE_CREATE_INFO,
+    pub extensionCount: GR_UINT,
+    pub ppEnabledExtensionNames: *const *const GR_CHAR,
+    pub maxValidationLevel: GR_VALIDATION_LEVEL,
+    pub flags: GR_FLAGS,
+}
+
 extern {
     pub fn grInitAndEnumerateGpus(pAppInfo: *const GR_APPLICATION_INFO,
                                   pAllocCb: *const GR_ALLOC_CALLBACKS, pGpuCount: *mut GR_UINT,
                                   gpus: *mut GR_PHYSICAL_GPU) -> GR_RESULT;
+
+    pub fn grCreateDevice(gpu: GR_PHYSICAL_GPU, pCreateInfo: *const GR_DEVICE_CREATE_INFO,
+                          pDevice: *mut GR_DEVICE) -> GR_RESULT;
 }
