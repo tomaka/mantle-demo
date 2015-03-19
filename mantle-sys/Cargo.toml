@@ -5,3 +5,7 @@ version = "0.0.1"
 authors = ["Pierre Krieger <pierre.krieger1708@gmail.com>"]
 build = "build.rs"
 links = "mantle"
+
+[dependencies]
+libc = "*"
+winapi = "*"

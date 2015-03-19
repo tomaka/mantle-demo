@@ -46,6 +46,48 @@ fn main() {
         }
         device
     };
+
+    let queue = unsafe {
+        let mut queue = mem::uninitialized();
+        ffi::grGetDeviceQueue(device, ffi::GR_QUEUE_UNIVERSAL, 0, &mut queue);
+        queue
+    };
+
+    let (image, mem) = unsafe {
+        let infos = ffi::GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO {
+            format: ffi::GR_FORMAT {
+                channelFormat: 8,
+                numericFormat: 3,
+            },
+            usage: ffi::GR_IMAGE_USAGE_COLOR_TARGET,
+            extent: ffi::GR_EXTENT2D {
+                width: 1024,
+                height: 1024,
+            },
+            display: 0,
+            flags: 0,
+        };
+
+        let mut image = mem::uninitialized();
+        let mut mem = mem::uninitialized();
+        check_result(ffi::grWsiWinCreatePresentableImage(device, &infos, &mut image,
+                                                         &mut mem)).unwrap();
+        (image, mem)
+    };
+
+    unsafe {
+        let infos = ffi::GR_WSI_WIN_PRESENT_INFO {
+            hWndDest: window,
+            srcImage: image,
+            presentMode: ffi::GR_WSI_WIN_PRESENT_MODE_WINDOWED,
+            presentInterval: 0,
+            flags: 0,
+        };
+
+        check_result(ffi::grWsiWinQueuePresent(queue, &infos)).unwrap();
+    }
+
+    loop {}
 }
 
 fn check_result(value: ffi::GR_RESULT) -> Result<(), String> {
@@ -55,7 +97,7 @@ fn check_result(value: ffi::GR_RESULT) -> Result<(), String> {
     }
 }
 
-unsafe fn create_window() {
+unsafe fn create_window() -> winapi::HWND {
     let class_name = register_window_class();
 
     let title: Vec<u16> = vec![b'M' as u16, b'a' as u16, b'n' as u16, b't' as u16,
@@ -66,10 +108,10 @@ unsafe fn create_window() {
                             winapi::WS_OVERLAPPEDWINDOW | winapi::WS_CLIPSIBLINGS |
                             winapi::WS_VISIBLE,
                             winapi::CW_USEDEFAULT, winapi::CW_USEDEFAULT,
-                            winapi::CW_USEDEFAULT, winapi::CW_USEDEFAULT,
+                            1024, 1024,
                             ptr::null_mut(), ptr::null_mut(),
                             kernel32::GetModuleHandleW(ptr::null()),
-                            ptr::null_mut());
+                            ptr::null_mut())
 }
 
 unsafe fn register_window_class() -> Vec<u16> {

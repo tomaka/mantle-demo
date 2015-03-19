@@ -2,6 +2,7 @@
 #![allow(non_snake_case)]
 
 extern crate libc;
+extern crate winapi;
 
 pub type GR_CHAR = libc::c_char;
 pub type GR_INT = libc::c_int;      // FIXME: not sure with 32/64bits
@@ -15,6 +16,7 @@ pub type GR_DEVICE = libc::uint64_t;      // FIXME: not sure with 32/64bits
 pub type GR_WSI_WIN_DISPLAY = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_IMAGE = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_GPU_MEMORY = libc::uint64_t;       // FIXME: not sure with 32/64bits
+pub type GR_QUEUE = libc::uint64_t;       // FIXME: not sure with 32/64bits
 
 pub type GR_FLAGS = libc::c_uint;       // FIXME: total guess
 
@@ -82,6 +84,22 @@ pub enum GR_VALIDATION_LEVEL {
     GR_VALIDATION_LEVEL_4 = 0x8004,
 }
 
+//#[repr(C)]
+//pub enum GR_IMAGE_USAGE_FLAGS {
+pub const GR_IMAGE_USAGE_SHADER_ACCESS_READ: GR_FLAGS = 0x00000001;
+pub const GR_IMAGE_USAGE_SHADER_ACCESS_WRITE: GR_FLAGS = 0x00000002;
+pub const GR_IMAGE_USAGE_COLOR_TARGET: GR_FLAGS = 0x00000004;
+pub const GR_IMAGE_USAGE_DEPTH_STENCIL: GR_FLAGS = 0x00000008;
+//}
+
+// GR_WSI_WIN_PRESENT_MODE
+pub const GR_WSI_WIN_PRESENT_MODE_WINDOWED: GR_ENUM = 0x00200200;
+pub const GR_WSI_WIN_PRESENT_MODE_FULLSCREEN: GR_ENUM = 0x00200201;
+
+// GR_QUEUE_TYPE
+pub const GR_QUEUE_UNIVERSAL: GR_ENUM = 0x1000;
+pub const GR_QUEUE_COMPUTE: GR_ENUM = 0x1001;
+
 // these are not guesses anymore (TODO: remove this comment)
 pub type GR_ALLOC_FUNCTION = extern "stdcall" fn(GR_SIZE, GR_SIZE, GR_ENUM) -> *mut GR_VOID;
 pub type GR_FREE_FUNCTION = extern "stdcall" fn(*mut GR_VOID);
@@ -139,6 +157,15 @@ pub struct GR_EXTENT2D {
     pub height: GR_INT,
 }
 
+#[repr(C)]
+pub struct GR_WSI_WIN_PRESENT_INFO {
+    pub hWndDest: winapi::HWND,
+    pub srcImage: GR_IMAGE,
+    pub presentMode: GR_ENUM,
+    pub presentInterval: GR_UINT,
+    pub flags: GR_FLAGS,
+}
+
 extern {
     pub fn grInitAndEnumerateGpus(pAppInfo: *const GR_APPLICATION_INFO,
                                   pAllocCb: *const GR_ALLOC_CALLBACKS, pGpuCount: *mut GR_UINT,
@@ -150,5 +177,15 @@ extern {
 
     pub fn grWsiWinCreatePresentableImage(device: GR_DEVICE, pCreateInfo: *const
                                           GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO,
-                                          pImage: *mut GR_IMAGE, pMem: *mut GR_GPU_MEMORY);
+                                          pImage: *mut GR_IMAGE, pMem: *mut GR_GPU_MEMORY)
+                                          -> GR_RESULT;
+
+    pub fn grWsiWinGetDisplays(device: GR_DEVICE, pDisplayCount: *mut GR_UINT,
+                               pDisplayList: *mut GR_WSI_WIN_DISPLAY) -> GR_RESULT;
+
+    pub fn grWsiWinQueuePresent(queue: GR_QUEUE, pPresentInfo: *const GR_WSI_WIN_PRESENT_INFO)
+                                -> GR_RESULT;
+
+    pub fn grGetDeviceQueue(device: GR_DEVICE, queueType: GR_ENUM, queueId: GR_UINT,
+                            queue: *mut GR_QUEUE) -> GR_RESULT;
 }
