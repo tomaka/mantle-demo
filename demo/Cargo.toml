@@ -1,0 +1,8 @@
+[package]
+
+name = "demo"
+version = "0.0.1"
+authors = ["Pierre Krieger <pierre.krieger1708@gmail.com>"]
+
+[dependencies.mantle-sys]
+path = "../mantle-sys"
