@@ -210,6 +210,16 @@ fn main() {
 
             check_result(ffi::grWsiWinQueuePresent(queue, &infos)).unwrap();
         }
+
+        unsafe {
+            let mut msg = mem::uninitialized();
+            if user32::GetMessageW(&mut msg, ptr::null_mut(), 0, 0) == 0 {
+                break;
+            }
+
+            user32::TranslateMessage(&msg);
+            user32::DispatchMessageW(&msg);
+        }
     }
 }
 
