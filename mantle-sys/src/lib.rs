@@ -22,6 +22,7 @@ pub type GR_QUEUE = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_CMD_BUFFER = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_FENCE = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_BASE_OBJECT = libc::uint64_t;       // FIXME: not sure with 32/64bits
+pub type GR_OBJECT = libc::uint64_t;       // FIXME: not sure with 32/64bits
 
 pub type GR_FLAGS = libc::c_uint;       // FIXME: total guess
 
@@ -276,4 +277,6 @@ extern {
                               pStateTransitions: *const GR_IMAGE_STATE_TRANSITION);
 
     pub fn grGetExtensionSupport(gpu: GR_PHYSICAL_GPU, pExtName: *const GR_CHAR) -> GR_RESULT;
+
+    pub fn grDestroyObject(object: GR_OBJECT) -> GR_RESULT;
 }

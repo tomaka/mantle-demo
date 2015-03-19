@@ -15,6 +15,13 @@ fn main() {
 
     let window = unsafe { create_window() };
 
+    let (width, height) = unsafe {
+        let mut rect: winapi::RECT = mem::uninitialized();
+        user32::GetClientRect(window, &mut rect);
+
+        ((rect.right - rect.left) as u32, (rect.bottom - rect.top) as u32)
+    };
+
     let gpus = unsafe {
         let mut appinfos: ffi::GR_APPLICATION_INFO = mem::zeroed();
         appinfos.apiVersion = ffi::GR_API_VERSION;
@@ -72,8 +79,8 @@ fn main() {
             },
             usage: ffi::GR_IMAGE_USAGE_COLOR_TARGET,
             extent: ffi::GR_EXTENT2D {
-                width: 1024,
-                height: 1024,
+                width: width as i32,
+                height: height as i32,
             },
             display: 0,
             flags: 0,
@@ -224,7 +231,7 @@ unsafe fn create_window() -> winapi::HWND {
                             winapi::WS_OVERLAPPEDWINDOW | winapi::WS_CLIPSIBLINGS |
                             winapi::WS_VISIBLE,
                             winapi::CW_USEDEFAULT, winapi::CW_USEDEFAULT,
-                            1024, 1024,
+                            winapi::CW_USEDEFAULT, winapi::CW_USEDEFAULT,
                             ptr::null_mut(), ptr::null_mut(),
                             kernel32::GetModuleHandleW(ptr::null()),
                             ptr::null_mut())
