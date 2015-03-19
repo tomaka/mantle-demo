@@ -80,6 +80,42 @@ fn main() {
         (image, mem)
     };
 
+    unsafe {
+        let infos = ffi::GR_CMD_BUFFER_CREATE_INFO {
+            queueType: ffi::GR_QUEUE_UNIVERSAL,
+            flags: 0,
+        };
+
+        let mut cmd_buffer = mem::uninitialized();
+        check_result(ffi::grCreateCommandBuffer(device, &infos, &mut cmd_buffer)).unwrap();
+
+        check_result(ffi::grBeginCommandBuffer(cmd_buffer, 0)).unwrap();
+
+        let transition = ffi::GR_IMAGE_STATE_TRANSITION {
+            image: image,
+            oldState: ffi::GR_IMAGE_STATE_UNINITIALIZED,
+            newState: ffi::GR_WSI_WIN_IMAGE_STATE_PRESENT_WINDOWED,
+            subresourceRange: ffi::GR_IMAGE_SUBRESOURCE_RANGE {
+                aspect: ffi::GR_IMAGE_ASPECT_COLOR,
+                baseMipLevel: 0,
+                mipLevels: 1,
+                baseArraySlice: 0,
+                arraySize: 1,
+            },
+        };
+
+        ffi::grCmdPrepareImages(cmd_buffer, 1, &transition);
+
+        check_result(ffi::grEndCommandBuffer(cmd_buffer)).unwrap();
+
+        let mem = ffi::GR_MEMORY_REF {
+            mem: image_mem,
+            flags: 0,
+        };
+
+        check_result(ffi::grQueueSubmit(queue, 1, &cmd_buffer, 1, &mem, 0)).unwrap();
+    }
+
     let cmd_buffer = unsafe {
         let infos = ffi::GR_CMD_BUFFER_CREATE_INFO {
             queueType: ffi::GR_QUEUE_UNIVERSAL,
@@ -93,6 +129,22 @@ fn main() {
 
     unsafe {
         check_result(ffi::grBeginCommandBuffer(cmd_buffer, 0)).unwrap();
+        
+        let transition = ffi::GR_IMAGE_STATE_TRANSITION {
+            image: image,
+            oldState: ffi::GR_WSI_WIN_IMAGE_STATE_PRESENT_WINDOWED,
+            newState: ffi::GR_IMAGE_STATE_CLEAR,
+            subresourceRange: ffi::GR_IMAGE_SUBRESOURCE_RANGE {
+                aspect: ffi::GR_IMAGE_ASPECT_COLOR,
+                baseMipLevel: 0,
+                mipLevels: 1,
+                baseArraySlice: 0,
+                arraySize: 1,
+            },
+        };
+
+        ffi::grCmdPrepareImages(cmd_buffer, 1, &transition);
+
 
         let color = [0.0, 0.0, 1.0, 1.0];
         let range = ffi::GR_IMAGE_SUBRESOURCE_RANGE {
@@ -104,6 +156,22 @@ fn main() {
         };
 
         ffi::grCmdClearColorImage(cmd_buffer, image, color.as_ptr(), 1, &range);
+
+        let transition = ffi::GR_IMAGE_STATE_TRANSITION {
+            image: image,
+            oldState: ffi::GR_IMAGE_STATE_CLEAR,
+            newState: ffi::GR_WSI_WIN_IMAGE_STATE_PRESENT_WINDOWED,
+            subresourceRange: ffi::GR_IMAGE_SUBRESOURCE_RANGE {
+                aspect: ffi::GR_IMAGE_ASPECT_COLOR,
+                baseMipLevel: 0,
+                mipLevels: 1,
+                baseArraySlice: 0,
+                arraySize: 1,
+            },
+        };
+
+        ffi::grCmdPrepareImages(cmd_buffer, 1, &transition);
+
 
         check_result(ffi::grEndCommandBuffer(cmd_buffer)).unwrap();
     }
@@ -186,9 +254,9 @@ extern "system" fn callback(window: winapi::HWND, msg: winapi::UINT,
 }
 
 extern "stdcall" fn debug_callback(_msg_type: ffi::GR_ENUM, _validation_level: ffi::GR_ENUM,
-                                   _src_object: ffi::GR_BASE_OBJECT, location: ffi::GR_SIZE,
-                                   msg_code: ffi::GR_ENUM, msg: *const ffi::GR_CHAR,
-                                   user_data: *mut ffi::GR_VOID)
+                                   _src_object: ffi::GR_BASE_OBJECT, _location: ffi::GR_SIZE,
+                                   _msg_code: ffi::GR_ENUM, msg: *const ffi::GR_CHAR,
+                                   _user_data: *mut ffi::GR_VOID)
 {
     unsafe {
         let msg = CStr::from_ptr(msg);
