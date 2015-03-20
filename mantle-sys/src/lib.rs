@@ -184,7 +184,6 @@ pub struct GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO {
 
 #[repr(C)]
 pub struct GR_FORMAT {
-    // FIXME: not sure about the order
     pub channelFormat: libc::uint16_t,
     pub numericFormat: libc::uint16_t,
 }
