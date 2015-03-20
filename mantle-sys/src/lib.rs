@@ -278,4 +278,6 @@ extern {
     pub fn grGetExtensionSupport(gpu: GR_PHYSICAL_GPU, pExtName: *const GR_CHAR) -> GR_RESULT;
 
     pub fn grDestroyObject(object: GR_OBJECT) -> GR_RESULT;
+
+    pub fn grDestroyDevice(device: GR_DEVICE) -> GR_RESULT;
 }

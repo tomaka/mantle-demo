@@ -4,9 +4,40 @@ extern crate "user32-sys" as user32;
 extern crate "mantle-sys" as ffi;
 extern crate winapi;
 
+extern crate mantle;
+
 use std::mem;
 use std::ptr;
 use std::ffi::CStr;
+
+fn new_main() {
+    let device = mantle::MainDevice::new(&mantle::get_gpus().nth(0).unwrap());
+
+    let window = unsafe { create_window() };
+
+    let (width, height) = unsafe {
+        let mut rect: winapi::RECT = mem::uninitialized();
+        user32::GetClientRect(window, &mut rect);
+
+        ((rect.right - rect.left) as u32, (rect.bottom - rect.top) as u32)
+    };
+
+    let image = mantle::presentable_image::PresentableImage::new(&device, width, height);
+
+    loop {
+        image.present(window);
+
+        unsafe {
+            let mut msg = mem::uninitialized();
+            if user32::GetMessageW(&mut msg, ptr::null_mut(), 0, 0) == 0 {
+                break;
+            }
+
+            user32::TranslateMessage(&msg);
+            user32::DispatchMessageW(&msg);
+        }
+    }
+}
 
 fn main() {
     unsafe {
