@@ -136,11 +136,11 @@ pub const GR_IMAGE_STATE_DATA_TRANSFER_DESTINATION: GR_ENUM = 0x1311;
 pub const GR_WSI_WIN_IMAGE_STATE_PRESENT_WINDOWED: GR_ENUM = 0x00200000;
 pub const GR_WSI_WIN_IMAGE_STATE_PRESENT_FULLSCREEN: GR_ENUM = 0x00200001;
 
-pub type GR_ALLOC_FUNCTION = extern "stdcall" fn(GR_SIZE, GR_SIZE, GR_ENUM) -> *mut GR_VOID;
-pub type GR_FREE_FUNCTION = extern "stdcall" fn(*mut GR_VOID);
-pub type GR_DBG_MSG_CALLBACK_FUNCTION = extern "stdcall" fn(GR_ENUM, GR_ENUM, GR_BASE_OBJECT,
-                                                            GR_SIZE, GR_ENUM, *const GR_CHAR,
-                                                            *mut GR_VOID);
+pub type GR_ALLOC_FUNCTION = unsafe extern "stdcall" fn(GR_SIZE, GR_SIZE, GR_ENUM) -> *mut GR_VOID;
+pub type GR_FREE_FUNCTION = unsafe extern "stdcall" fn(*mut GR_VOID);
+pub type GR_DBG_MSG_CALLBACK_FUNCTION = unsafe extern "stdcall" fn(GR_ENUM, GR_ENUM, GR_BASE_OBJECT,
+                                                                   GR_SIZE, GR_ENUM, *const GR_CHAR,
+                                                                   *mut GR_VOID);
 
 #[repr(C)]
 pub struct GR_APPLICATION_INFO {

@@ -1,7 +1,9 @@
-extern crate "kernel32-sys" as kernel32;
-extern crate "gdi32-sys" as gdi32;
-extern crate "user32-sys" as user32;
-extern crate "mantle-sys" as ffi;
+#![feature(collections)]
+
+extern crate kernel32;
+extern crate gdi32;
+extern crate user32;
+extern crate mantle_sys as ffi;
 extern crate winapi;
 
 extern crate mantle;
@@ -301,16 +303,17 @@ unsafe fn register_window_class() -> Vec<u16> {
     class_name
 }
 
-extern "system" fn callback(window: winapi::HWND, msg: winapi::UINT,
-                            wparam: winapi::WPARAM, lparam: winapi::LPARAM) -> winapi::LRESULT
+unsafe extern "system" fn callback(window: winapi::HWND, msg: winapi::UINT,
+                                   wparam: winapi::WPARAM, lparam: winapi::LPARAM)
+                                   -> winapi::LRESULT
 {
     unsafe { user32::DefWindowProcW(window, msg, wparam, lparam) }
 }
 
-extern "stdcall" fn debug_callback(_msg_type: ffi::GR_ENUM, _validation_level: ffi::GR_ENUM,
-                                   _src_object: ffi::GR_BASE_OBJECT, _location: ffi::GR_SIZE,
-                                   _msg_code: ffi::GR_ENUM, msg: *const ffi::GR_CHAR,
-                                   _user_data: *mut ffi::GR_VOID)
+unsafe extern "stdcall" fn debug_callback(_msg_type: ffi::GR_ENUM, _validation_level: ffi::GR_ENUM,
+                                          _src_object: ffi::GR_BASE_OBJECT, _location: ffi::GR_SIZE,
+                                          _msg_code: ffi::GR_ENUM, msg: *const ffi::GR_CHAR,
+                                          _user_data: *mut ffi::GR_VOID)
 {
     unsafe {
         let msg = CStr::from_ptr(msg);

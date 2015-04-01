@@ -1,9 +1,9 @@
 #![feature(optin_builtin_traits)]
 
-extern crate "kernel32-sys" as kernel32;
-extern crate "gdi32-sys" as gdi32;
-extern crate "user32-sys" as user32;
-extern crate "mantle-sys" as ffi;
+extern crate kernel32;
+extern crate gdi32;
+extern crate user32;
+extern crate mantle_sys as ffi;
 extern crate winapi;
 
 pub use device::{MainDevice, Device};

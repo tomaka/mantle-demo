@@ -61,10 +61,10 @@ impl Iterator for GpusIterator {
     }
 }
 
-extern "stdcall" fn debug_callback(_msg_type: ffi::GR_ENUM, _validation_level: ffi::GR_ENUM,
-                                   _src_object: ffi::GR_BASE_OBJECT, _location: ffi::GR_SIZE,
-                                   _msg_code: ffi::GR_ENUM, msg: *const ffi::GR_CHAR,
-                                   _user_data: *mut ffi::GR_VOID)
+unsafe extern "stdcall" fn debug_callback(_msg_type: ffi::GR_ENUM, _validation_level: ffi::GR_ENUM,
+                                          _src_object: ffi::GR_BASE_OBJECT, _location: ffi::GR_SIZE,
+                                          _msg_code: ffi::GR_ENUM, msg: *const ffi::GR_CHAR,
+                                          _user_data: *mut ffi::GR_VOID)
 {
     unsafe {
         let msg = CStr::from_ptr(msg);
