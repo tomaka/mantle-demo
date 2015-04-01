@@ -12,7 +12,6 @@ pub use instance::get_gpus;
 pub mod command_buffer;
 pub mod device;
 pub mod error;
-pub mod macros;
 pub mod presentable_image;
 
 mod instance;

@@ -90,7 +90,7 @@ impl MainDevice {
         }
     }
 
-    pub fn submit<L>(&self, commands: &CommandBuffer<L>) {
+    pub fn submit(&self, commands: &CommandBuffer) {
         unimplemented!();
     }
 }
