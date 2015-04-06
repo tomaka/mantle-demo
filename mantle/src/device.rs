@@ -10,6 +10,7 @@ use ffi;
 use command_buffer::CommandBuffer;
 use instance::Gpu;
 
+use CommandBufferExt;
 use MantleObject;
 use QueuesProvider;
 
@@ -91,7 +92,12 @@ impl MainDevice {
     }
 
     pub fn submit(&self, commands: &CommandBuffer) {
-        unimplemented!();
+        let mem = commands.build_memory_refs();
+        let commands = [*commands.get_id()];
+
+        error::check_result(unsafe {
+            ffi::grQueueSubmit(self.device.queue, 1, commands.as_ptr(), mem.len() as u32, mem.as_ptr(), 0)
+        }).unwrap();
     }
 }
 

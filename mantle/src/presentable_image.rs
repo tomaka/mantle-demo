@@ -6,6 +6,7 @@ use std::mem;
 use std::ptr;
 
 use device::MainDevice;
+use ImageExt;
 use MantleObject;
 use QueuesProvider;
 
@@ -39,6 +40,43 @@ impl PresentableImage {
             (image, mem)
         };
 
+        // switching to `GR_WSI_WIN_IMAGE_STATE_PRESENT_WINDOWED` state
+        unsafe {
+            let infos = ffi::GR_CMD_BUFFER_CREATE_INFO {
+                queueType: ffi::GR_QUEUE_UNIVERSAL,
+                flags: 0,
+            };
+
+            let mut cmd_buffer = mem::uninitialized();
+            error::check_result(ffi::grCreateCommandBuffer(*device.get_id(), &infos, &mut cmd_buffer)).unwrap();
+
+            error::check_result(ffi::grBeginCommandBuffer(cmd_buffer, ffi::GR_CMD_BUFFER_OPTIMIZE_ONE_TIME_SUBMIT)).unwrap();
+
+            let transition = ffi::GR_IMAGE_STATE_TRANSITION {
+                image: image,
+                oldState: ffi::GR_IMAGE_STATE_UNINITIALIZED,
+                newState: ffi::GR_WSI_WIN_IMAGE_STATE_PRESENT_WINDOWED,
+                subresourceRange: ffi::GR_IMAGE_SUBRESOURCE_RANGE {
+                    aspect: ffi::GR_IMAGE_ASPECT_COLOR,
+                    baseMipLevel: 0,
+                    mipLevels: 1,
+                    baseArraySlice: 0,
+                    arraySize: 1,
+                },
+            };
+
+            ffi::grCmdPrepareImages(cmd_buffer, 1, &transition);
+
+            error::check_result(ffi::grEndCommandBuffer(cmd_buffer)).unwrap();
+
+            let mem = ffi::GR_MEMORY_REF {
+                mem: image_mem,
+                flags: 0,
+            };
+
+            error::check_result(ffi::grQueueSubmit(device.get_queue(), 1, &cmd_buffer, 1, &mem, 0)).unwrap();
+        }
+
         PresentableImage {
             device: device.clone(),
             image: image,
@@ -59,5 +97,15 @@ impl PresentableImage {
 
             error::check_result(ffi::grWsiWinQueuePresent(self.device.get_queue(), &infos)).unwrap();
         }
+    }
+}
+
+impl ImageExt for PresentableImage {
+    fn get_image(&self) -> ffi::GR_IMAGE {
+        self.image
+    }
+
+    fn get_mem(&self) -> ffi::GR_GPU_MEMORY {
+        self.mem
     }
 }

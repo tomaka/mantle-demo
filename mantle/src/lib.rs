@@ -25,3 +25,14 @@ trait MantleObject {
 trait QueuesProvider {
     fn get_queue(&self) -> ffi::GR_QUEUE;
 }
+
+/// Extra internal methods on command buffers.
+trait CommandBufferExt {
+    fn build_memory_refs(&self) -> Vec<ffi::GR_MEMORY_REF>;
+}
+
+/// Extra internal methods on images.
+trait ImageExt {
+    fn get_image(&self) -> ffi::GR_IMAGE;
+    fn get_mem(&self) -> ffi::GR_GPU_MEMORY;
+}
