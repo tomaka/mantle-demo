@@ -101,6 +101,10 @@ impl PresentableImage {
 }
 
 impl ImageExt for PresentableImage {
+    fn get_normal_state(&self) -> ffi::GR_ENUM {
+        ffi::GR_WSI_WIN_IMAGE_STATE_PRESENT_WINDOWED
+    }
+
     fn get_image(&self) -> ffi::GR_IMAGE {
         self.image
     }

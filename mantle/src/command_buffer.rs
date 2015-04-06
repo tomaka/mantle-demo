@@ -25,6 +25,7 @@ pub struct CommandBufferBuilder {
 }
 
 impl CommandBufferBuilder {
+    /// Builds a new prototype of a command buffer.
     pub fn new<D: AsRawDevice>(device: &D) -> CommandBufferBuilder {
         let infos = ffi::GR_CMD_BUFFER_CREATE_INFO {
             queueType: ffi::GR_QUEUE_UNIVERSAL,
@@ -47,54 +48,64 @@ impl CommandBufferBuilder {
         }
     }
 
+    /// Adds a command that clears the given image to a specific color.
     pub fn clear_image(mut self, image: &PresentableImage, red: f32, green: f32, blue: f32, alpha: f32) -> CommandBufferBuilder {
-        let (image, image_mem) = (image.get_image(), image.get_mem());
+        let (image, image_mem, original_state) = (image.get_image(), image.get_mem(), image.get_normal_state());
 
-        let transition = ffi::GR_IMAGE_STATE_TRANSITION {
-            image: image,
-            oldState: ffi::GR_WSI_WIN_IMAGE_STATE_PRESENT_WINDOWED,
-            newState: ffi::GR_IMAGE_STATE_CLEAR,
-            subresourceRange: ffi::GR_IMAGE_SUBRESOURCE_RANGE {
+        // switching to `GR_IMAGE_STATE_CLEAR`
+        if original_state != ffi::GR_IMAGE_STATE_CLEAR {
+            let transition = ffi::GR_IMAGE_STATE_TRANSITION {
+                image: image,
+                oldState: original_state,
+                newState: ffi::GR_IMAGE_STATE_CLEAR,
+                subresourceRange: ffi::GR_IMAGE_SUBRESOURCE_RANGE {
+                    aspect: ffi::GR_IMAGE_ASPECT_COLOR,
+                    baseMipLevel: 0,
+                    mipLevels: 1,
+                    baseArraySlice: 0,
+                    arraySize: 1,
+                },
+            };
+
+            unsafe {
+                ffi::grCmdPrepareImages(self.cmd.unwrap(), 1, &transition);
+            }
+        }
+
+        // clear color command
+        {
+            let color = [red, green, blue, alpha];
+            let range = ffi::GR_IMAGE_SUBRESOURCE_RANGE {
                 aspect: ffi::GR_IMAGE_ASPECT_COLOR,
                 baseMipLevel: 0,
                 mipLevels: 1,
                 baseArraySlice: 0,
                 arraySize: 1,
-            },
-        };
+            };
 
-        unsafe {
-            ffi::grCmdPrepareImages(self.cmd.unwrap(), 1, &transition);
+            unsafe {
+                ffi::grCmdClearColorImage(self.cmd.unwrap(), image, color.as_ptr(), 1, &range);
+            }
         }
 
-        let color = [red, green, blue, alpha];
-        let range = ffi::GR_IMAGE_SUBRESOURCE_RANGE {
-            aspect: ffi::GR_IMAGE_ASPECT_COLOR,
-            baseMipLevel: 0,
-            mipLevels: 1,
-            baseArraySlice: 0,
-            arraySize: 1,
-        };
+        // switching back to the previous state
+        if original_state != ffi::GR_IMAGE_STATE_CLEAR {
+            let transition = ffi::GR_IMAGE_STATE_TRANSITION {
+                image: image,
+                oldState: ffi::GR_IMAGE_STATE_CLEAR,
+                newState: original_state,
+                subresourceRange: ffi::GR_IMAGE_SUBRESOURCE_RANGE {
+                    aspect: ffi::GR_IMAGE_ASPECT_COLOR,
+                    baseMipLevel: 0,
+                    mipLevels: 1,
+                    baseArraySlice: 0,
+                    arraySize: 1,
+                },
+            };
 
-        unsafe {
-            ffi::grCmdClearColorImage(self.cmd.unwrap(), image, color.as_ptr(), 1, &range);
-        }
-
-        let transition = ffi::GR_IMAGE_STATE_TRANSITION {
-            image: image,
-            oldState: ffi::GR_IMAGE_STATE_CLEAR,
-            newState: ffi::GR_WSI_WIN_IMAGE_STATE_PRESENT_WINDOWED,
-            subresourceRange: ffi::GR_IMAGE_SUBRESOURCE_RANGE {
-                aspect: ffi::GR_IMAGE_ASPECT_COLOR,
-                baseMipLevel: 0,
-                mipLevels: 1,
-                baseArraySlice: 0,
-                arraySize: 1,
-            },
-        };
-
-        unsafe {
-            ffi::grCmdPrepareImages(self.cmd.unwrap(), 1, &transition);
+            unsafe {
+                ffi::grCmdPrepareImages(self.cmd.unwrap(), 1, &transition);
+            }
         }
 
         self.memory_refs.push(ffi::GR_MEMORY_REF {
@@ -105,6 +116,7 @@ impl CommandBufferBuilder {
         self
     }
 
+    /// Builds the command buffer containing all the commands.
     pub fn build(mut self) -> CommandBuffer {
         let cmd_buffer = self.cmd.take().unwrap();
         error::check_result(unsafe { ffi::grEndCommandBuffer(cmd_buffer) }).unwrap();

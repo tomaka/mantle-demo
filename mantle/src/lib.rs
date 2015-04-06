@@ -33,6 +33,12 @@ trait CommandBufferExt {
 
 /// Extra internal methods on images.
 trait ImageExt {
+    /// Returns the normal state of the image.
+    ///
+    /// When an image starts being used, it is guaranteed to be in this state.
+    /// Command buffers are also required to return the image to its default state at the end.
+    fn get_normal_state(&self) -> ffi::GR_ENUM;
+
     fn get_image(&self) -> ffi::GR_IMAGE;
     fn get_mem(&self) -> ffi::GR_GPU_MEMORY;
 }
