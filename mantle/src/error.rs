@@ -1,6 +1,6 @@
 use ffi;
 
-#[derive(Debug, Copy)]
+#[derive(Debug, Copy, Clone)]
 pub enum MantleError {
     Unknown,
     Unavailable,

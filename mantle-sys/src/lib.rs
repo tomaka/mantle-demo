@@ -29,7 +29,7 @@ pub type GR_FLAGS = libc::c_uint;       // FIXME: total guess
 pub const GR_MAX_PHYSICAL_GPUS: usize = 4;
 pub const GR_API_VERSION: u32 = 1;      // FIXME: this was guessed
 
-#[derive(Debug, Copy)]
+#[derive(Debug, Copy, Clone)]
 #[repr(C)]
 pub enum GR_RESULT {
     GR_SUCCESS = 0x10000,
