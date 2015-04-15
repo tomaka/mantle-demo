@@ -91,7 +91,7 @@ impl MainDevice {
         }
     }
 
-    pub fn submit(&self, commands: &CommandBuffer) {
+    pub fn submit(&self, commands: &Arc<CommandBuffer>) {
         let mem = commands.build_memory_refs();
         let commands = [*commands.get_id()];
 

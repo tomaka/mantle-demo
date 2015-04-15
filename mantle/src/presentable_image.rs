@@ -4,6 +4,7 @@ use winapi;
 
 use std::mem;
 use std::ptr;
+use std::sync::Arc;
 
 use device::MainDevice;
 use ImageExt;
@@ -17,7 +18,7 @@ pub struct PresentableImage {
 }
 
 impl PresentableImage {
-    pub fn new(device: &MainDevice, width: u32, height: u32) -> PresentableImage {
+    pub fn new(device: &MainDevice, width: u32, height: u32) -> Arc<PresentableImage> {
         let infos = ffi::GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO {
             format: ffi::GR_FORMAT {
                 channelFormat: 8,
@@ -77,11 +78,11 @@ impl PresentableImage {
             error::check_result(ffi::grQueueSubmit(device.get_queue(), 1, &cmd_buffer, 1, &mem, 0)).unwrap();
         }
 
-        PresentableImage {
+        Arc::new(PresentableImage {
             device: device.clone(),
             image: image,
             mem: image_mem,
-        }
+        })
     }
 
     /// Presents the image to the given window.

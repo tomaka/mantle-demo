@@ -49,7 +49,7 @@ impl CommandBufferBuilder {
     }
 
     /// Adds a command that clears the given image to a specific color.
-    pub fn clear_image(mut self, image: &PresentableImage, red: f32, green: f32, blue: f32, alpha: f32) -> CommandBufferBuilder {
+    pub fn clear_image(mut self, image: &Arc<PresentableImage>, red: f32, green: f32, blue: f32, alpha: f32) -> CommandBufferBuilder {
         let (image, image_mem, original_state) = (image.get_image(), image.get_mem(), image.get_normal_state());
 
         // switching to `GR_IMAGE_STATE_CLEAR`
@@ -117,15 +117,15 @@ impl CommandBufferBuilder {
     }
 
     /// Builds the command buffer containing all the commands.
-    pub fn build(mut self) -> CommandBuffer {
+    pub fn build(mut self) -> Arc<CommandBuffer> {
         let cmd_buffer = self.cmd.take().unwrap();
         error::check_result(unsafe { ffi::grEndCommandBuffer(cmd_buffer) }).unwrap();
 
-        CommandBuffer {
+        Arc::new(CommandBuffer {
             device: self.device.clone(),
             cmd: cmd_buffer,
             memory_refs: mem::replace(&mut self.memory_refs, Vec::with_capacity(0)),
-        }
+        })
     }
 }
 
