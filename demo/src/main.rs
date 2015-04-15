@@ -29,7 +29,8 @@ fn main() {
                             .clear_image(&image, 0.0, 1.0, 0.0, 1.0)
                             .build();
 
-    //let shader = mantle::shader::Shader::new(&device, b"test");
+    let vertex_shader = mantle::shader::Shader::new(&device, include_bytes!("vs.bin"));
+    let fragment_shader = mantle::shader::Shader::new(&device, include_bytes!("ps.bin"));
 
     loop {
         device.submit(&clear_command);
