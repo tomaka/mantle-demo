@@ -201,5 +201,9 @@ impl<'a> Drop for Fence<'a> {
                 error::check_result(res).unwrap();
             }
         }
+
+        unsafe {
+            error::check_result(ffi::grDestroyObject(self.fence)).unwrap();
+        }
     }
 }
