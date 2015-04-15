@@ -12,6 +12,7 @@ pub type GR_SIZE = libc::size_t;
 pub type GR_ENUM = libc::uint32_t;
 pub type GR_VOID = libc::c_void;
 pub type GR_FLOAT = libc::c_float;
+pub type GR_BOOL = bool;            // FIXME: 
 
 pub type GR_PHYSICAL_GPU = libc::uint64_t;      // FIXME: not sure with 32/64bits
 pub type GR_DEVICE = libc::uint64_t;      // FIXME: not sure with 32/64bits
@@ -238,6 +239,11 @@ pub struct GR_IMAGE_STATE_TRANSITION {
     pub subresourceRange: GR_IMAGE_SUBRESOURCE_RANGE,
 }
 
+#[repr(C)]
+pub struct GR_FENCE_CREATE_INFO {
+    pub flags: GR_FLAGS,
+}
+
 extern {
     pub fn grInitAndEnumerateGpus(pAppInfo: *const GR_APPLICATION_INFO,
                                   pAllocCb: *const GR_ALLOC_CALLBACKS, pGpuCount: *mut GR_UINT,
@@ -286,4 +292,10 @@ extern {
     pub fn grDestroyObject(object: GR_OBJECT) -> GR_RESULT;
 
     pub fn grDestroyDevice(device: GR_DEVICE) -> GR_RESULT;
+
+    pub fn grCreateFence(device: GR_DEVICE, pCreateInfo: *const GR_FENCE_CREATE_INFO,
+                         pFence: *mut GR_FENCE) -> GR_RESULT;
+
+    pub fn grWaitForFences(device: GR_DEVICE, fenceCount: GR_UINT, pFences: *const GR_FENCE,
+                           waitAll: GR_BOOL, timeout: GR_FLOAT) -> GR_RESULT;
 }

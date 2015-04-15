@@ -40,6 +40,12 @@ pub trait AsRawDevice {
     fn as_raw_device(&self) -> &Arc<RawDevice>;
 }
 
+pub struct Fence<'a> {
+    device: &'a RawDevice,
+    fence: ffi::GR_FENCE,
+    wait: bool,
+}
+
 impl MainDevice {
     /// Builds a new Mantle context for the given GPU.
     pub fn new(gpu: &Gpu) -> MainDevice {
@@ -91,13 +97,31 @@ impl MainDevice {
         }
     }
 
-    pub fn submit(&self, commands: &Arc<CommandBuffer>) {
+    pub fn submit(&self, commands: &Arc<CommandBuffer>) -> Fence {
+        let fence = unsafe {
+            let fence_infos = ffi::GR_FENCE_CREATE_INFO {
+                flags: 0,
+            };
+
+            let mut fence = mem::uninitialized();
+            error::check_result(ffi::grCreateFence(self.device.device, &fence_infos,
+                                                   &mut fence)).unwrap();
+            fence
+        };
+
         let mem = commands.build_memory_refs();
         let commands = [*commands.get_id()];
 
         error::check_result(unsafe {
-            ffi::grQueueSubmit(self.device.queue, 1, commands.as_ptr(), mem.len() as u32, mem.as_ptr(), 0)
+            ffi::grQueueSubmit(self.device.queue, 1, commands.as_ptr(), mem.len() as u32,
+                               mem.as_ptr(), fence)
         }).unwrap();
+
+        Fence {
+            device: &self.device,
+            fence: fence,
+            wait: true,
+        }
     }
 }
 
@@ -165,5 +189,17 @@ impl Drop for RawDevice {
     fn drop(&mut self) {
         let res = unsafe { ffi::grDestroyDevice(self.device) };
         error::check_result(res).unwrap();
+    }
+}
+
+impl<'a> Drop for Fence<'a> {
+    fn drop(&mut self) {
+        if self.wait {
+            unsafe {
+                let res = ffi::grWaitForFences(self.device.device, 1, [self.fence].as_ptr(),
+                                               true, 5.0);
+                error::check_result(res).unwrap();
+            }
+        }
     }
 }
