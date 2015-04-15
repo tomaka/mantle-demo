@@ -13,6 +13,7 @@ pub mod command_buffer;
 pub mod device;
 pub mod error;
 pub mod presentable_image;
+pub mod shader;
 
 mod instance;
 

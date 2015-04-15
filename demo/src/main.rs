@@ -29,6 +29,8 @@ fn main() {
                             .clear_image(&image, 0.0, 1.0, 0.0, 1.0)
                             .build();
 
+    //let shader = mantle::shader::Shader::new(&device, b"test");
+
     loop {
         device.submit(&clear_command);
         image.present(window);

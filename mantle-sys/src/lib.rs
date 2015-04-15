@@ -24,6 +24,7 @@ pub type GR_CMD_BUFFER = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_FENCE = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_BASE_OBJECT = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_OBJECT = libc::uint64_t;       // FIXME: not sure with 32/64bits
+pub type GR_SHADER = libc::uint64_t;       // FIXME: not sure with 32/64bits
 
 pub type GR_FLAGS = libc::c_uint;       // FIXME: total guess
 
@@ -142,6 +143,8 @@ pub const GR_CMD_BUFFER_OPTIMIZE_PIPELINE_SWITCH: GR_ENUM = 0x00000002;
 pub const GR_CMD_BUFFER_OPTIMIZE_ONE_TIME_SUBMIT: GR_ENUM = 0x00000004;
 pub const GR_CMD_BUFFER_OPTIMIZE_DESCRIPTOR_SET_SWITCH: GR_ENUM = 0x00000008;
 
+pub const GR_SHADER_CREATE_ALLOW_RE_Z: GR_FLAGS = 0x00000001;
+
 pub type GR_ALLOC_FUNCTION = unsafe extern "stdcall" fn(GR_SIZE, GR_SIZE, GR_ENUM) -> *mut GR_VOID;
 pub type GR_FREE_FUNCTION = unsafe extern "stdcall" fn(*mut GR_VOID);
 pub type GR_DBG_MSG_CALLBACK_FUNCTION = unsafe extern "stdcall" fn(GR_ENUM, GR_ENUM, GR_BASE_OBJECT,
@@ -244,6 +247,13 @@ pub struct GR_FENCE_CREATE_INFO {
     pub flags: GR_FLAGS,
 }
 
+#[repr(C)]
+pub struct GR_SHADER_CREATE_INFO {
+    pub codeSize: GR_SIZE,
+    pub pCode: *const GR_VOID,
+    pub flags: GR_FLAGS,
+}
+
 extern {
     pub fn grInitAndEnumerateGpus(pAppInfo: *const GR_APPLICATION_INFO,
                                   pAllocCb: *const GR_ALLOC_CALLBACKS, pGpuCount: *mut GR_UINT,
@@ -298,4 +308,7 @@ extern {
 
     pub fn grWaitForFences(device: GR_DEVICE, fenceCount: GR_UINT, pFences: *const GR_FENCE,
                            waitAll: GR_BOOL, timeout: GR_FLOAT) -> GR_RESULT;
+
+    pub fn grCreateShader(device: GR_DEVICE, pCreateInfo: *const GR_SHADER_CREATE_INFO,
+                          pShader: *mut GR_SHADER) -> GR_RESULT;
 }
