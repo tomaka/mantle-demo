@@ -181,6 +181,23 @@ pub const GR_MEMORY_PRIORITY_UNUSED: GR_ENUM = 0x1103;
 pub const GR_MEMORY_PRIORITY_VERY_HIGH: GR_ENUM = 0x1104;
 pub const GR_MEMORY_PRIORITY_VERY_LOW: GR_ENUM = 0x1105;
 
+// GR_MEMORY_STATE
+pub const GR_MEMORY_STATE_DATA_TRANSFER: GR_ENUM = 0x1200;
+pub const GR_MEMORY_STATE_GRAPHICS_SHADER_READ_ONLY: GR_ENUM = 0x1201;
+pub const GR_MEMORY_STATE_GRAPHICS_SHADER_WRITE_ONLY: GR_ENUM = 0x1202;
+pub const GR_MEMORY_STATE_GRAPHICS_SHADER_READ_WRITE: GR_ENUM = 0x1203;
+pub const GR_MEMORY_STATE_COMPUTE_SHADER_READ_ONLY: GR_ENUM = 0x1204;
+pub const GR_MEMORY_STATE_COMPUTE_SHADER_WRITE_ONLY: GR_ENUM = 0x1205;
+pub const GR_MEMORY_STATE_COMPUTE_SHADER_READ_WRITE: GR_ENUM = 0x1206;
+pub const GR_MEMORY_STATE_MULTI_USE_READ_ONLY: GR_ENUM = 0x1207;
+pub const GR_MEMORY_STATE_INDEX_DATA: GR_ENUM = 0x1208;
+pub const GR_MEMORY_STATE_INDIRECT_ARG: GR_ENUM = 0x1209;
+pub const GR_MEMORY_STATE_WRITE_TIMESTAMP: GR_ENUM = 0x120a;
+pub const GR_MEMORY_STATE_QUEUE_ATOMIC: GR_ENUM = 0x120b;
+pub const GR_MEMORY_STATE_DISCARD: GR_ENUM = 0x120c;
+pub const GR_MEMORY_STATE_DATA_TRANSFER_SOURCE: GR_ENUM = 0x120d;
+pub const GR_MEMORY_STATE_DATA_TRANSFER_DESTINATION: GR_ENUM = 0x120e;
+
 pub type GR_ALLOC_FUNCTION = unsafe extern "stdcall" fn(GR_SIZE, GR_SIZE, GR_ENUM) -> *mut GR_VOID;
 pub type GR_FREE_FUNCTION = unsafe extern "stdcall" fn(*mut GR_VOID);
 pub type GR_DBG_MSG_CALLBACK_FUNCTION = unsafe extern "stdcall" fn(GR_ENUM, GR_ENUM, GR_BASE_OBJECT,
@@ -312,6 +329,15 @@ pub struct GR_MEMORY_ALLOC_INFO {
     pub memPriority: GR_ENUM,
 }
 
+#[repr(C)]
+pub struct GR_MEMORY_STATE_TRANSITION {
+    pub mem: GR_GPU_MEMORY,
+    pub oldState: GR_ENUM,
+    pub newState: GR_ENUM,
+    pub offset: GR_GPU_SIZE,
+    pub regionSize: GR_GPU_SIZE,
+}
+
 extern {
     pub fn grInitAndEnumerateGpus(pAppInfo: *const GR_APPLICATION_INFO,
                                   pAllocCb: *const GR_ALLOC_CALLBACKS, pGpuCount: *mut GR_UINT,
@@ -383,4 +409,7 @@ extern {
     pub fn grMapMemory(mem: GR_GPU_MEMORY, flags: GR_FLAGS, ppData: *mut *mut GR_VOID) -> GR_RESULT;
 
     pub fn grUnmapMemory(mem: GR_GPU_MEMORY) -> GR_RESULT;
+
+    pub fn grCmdPrepareMemoryRegions(cmdBuffer: GR_CMD_BUFFER, transitionCount: GR_UINT,
+                                     pStateTransitions: *const GR_MEMORY_STATE_TRANSITION);
 }

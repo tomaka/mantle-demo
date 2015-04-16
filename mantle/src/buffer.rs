@@ -3,6 +3,7 @@ use error;
 
 use device::Device;
 use MantleObject;
+use DeviceExt;
 
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
@@ -12,6 +13,7 @@ use std::mem;
 pub struct Buffer {
     memory: ffi::GR_GPU_MEMORY,
     size: usize,
+    default_state: ffi::GR_ENUM,
 }
 
 pub struct Mapping<'a, T> {
@@ -39,9 +41,44 @@ impl Buffer {
             mem
         };
 
+/*
+        // switching to `GR_WSI_WIN_IMAGE_STATE_PRESENT_WINDOWED` state
+        unsafe {
+            let infos = ffi::GR_CMD_BUFFER_CREATE_INFO {
+                queueType: ffi::GR_QUEUE_UNIVERSAL,
+                flags: 0,
+            };
+
+            let mut cmd_buffer = mem::uninitialized();
+            error::check_result(ffi::grCreateCommandBuffer(*device.get_id(), &infos, &mut cmd_buffer)).unwrap();
+
+            error::check_result(ffi::grBeginCommandBuffer(cmd_buffer, ffi::GR_CMD_BUFFER_OPTIMIZE_ONE_TIME_SUBMIT)).unwrap();
+
+            let transition = ffi::GR_MEMORY_STATE_TRANSITION {
+                mem: mem,
+                oldState: ffi::GR_MEMORY_STATE_DATA_TRANSFER,
+                newState: ffi::GR_MEMORY_STATE_GRAPHICS_SHADER_READ_ONLY,
+                offset: 0,
+                regionSize: size as ffi::GR_GPU_SIZE,
+            };
+
+            ffi::grCmdPrepareMemoryRegions(cmd_buffer, 1, &transition);
+
+            error::check_result(ffi::grEndCommandBuffer(cmd_buffer)).unwrap();
+
+            let mem = ffi::GR_MEMORY_REF {
+                mem: mem,
+                flags: 0,
+            };
+
+            error::check_result(ffi::grQueueSubmit(device.get_queue(), 1, &cmd_buffer, 1, &mem, 0)).unwrap();
+        }
+*/
+
         Arc::new(Buffer {
             memory: mem,
             size: size,
+            default_state: ffi::GR_MEMORY_STATE_DATA_TRANSFER,
         })
     }
 
