@@ -32,6 +32,24 @@ fn main() {
     let vertex_shader = mantle::shader::Shader::new(&device, include_bytes!("vs.bin"));
     let fragment_shader = mantle::shader::Shader::new(&device, include_bytes!("ps.bin"));
 
+    let vertex_buffer = {
+        let buffer = mantle::buffer::Buffer::empty(&device, 24 * mem::size_of::<f32>());
+
+        {
+            let mut mapping = buffer.map();
+
+            mapping[0] =  0.0; mapping[1] =  0.5; mapping[ 2] = 0.0; mapping[ 3] = 1.0;
+            mapping[4] =  0.5; mapping[5] = -0.5; mapping[ 6] = 0.0; mapping[ 7] = 1.0;
+            mapping[8] = -0.5; mapping[9] = -0.5; mapping[10] = 0.0; mapping[11] = 1.0;
+
+            mapping[12] = 1.0; mapping[13] = 0.0; mapping[14] = 0.0; mapping[15] = 1.0;
+            mapping[16] = 0.0; mapping[17] = 1.0; mapping[18] = 0.0; mapping[19] = 1.0;
+            mapping[20] = 0.0; mapping[21] = 0.0; mapping[22] = 1.0; mapping[23] = 1.0;
+        }
+
+        buffer
+    };
+
     loop {
         device.submit(&clear_command);
         image.present(window);

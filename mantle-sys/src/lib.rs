@@ -379,4 +379,8 @@ extern {
                          pMem: *mut GR_GPU_MEMORY) -> GR_RESULT;
 
     pub fn grFreeMemory(mem: GR_GPU_MEMORY) -> GR_RESULT;
+
+    pub fn grMapMemory(mem: GR_GPU_MEMORY, flags: GR_FLAGS, ppData: *mut *mut GR_VOID) -> GR_RESULT;
+
+    pub fn grUnmapMemory(mem: GR_GPU_MEMORY) -> GR_RESULT;
 }
