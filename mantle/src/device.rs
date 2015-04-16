@@ -26,9 +26,9 @@ pub struct Device {
 
 /// Information about a memory heap.
 pub struct HeapInfos {
-    id: ffi::GR_UINT,
-    size: usize,
-    page_size: usize,
+    pub id: ffi::GR_UINT,
+    pub size: usize,
+    pub page_size: usize,
 }
 
 pub struct Fence<'a> {
@@ -132,6 +132,10 @@ impl Device {
             fence: fence,
             wait: true,
         }
+    }
+
+    pub fn get_heaps(&self) -> &[HeapInfos] {
+        &self.heaps
     }
 }
 

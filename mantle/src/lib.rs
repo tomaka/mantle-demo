@@ -7,6 +7,7 @@ extern crate winapi;
 pub use device::Device;
 pub use instance::get_gpus;
 
+pub mod buffer;
 pub mod command_buffer;
 pub mod device;
 pub mod error;
