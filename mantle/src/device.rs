@@ -21,6 +21,14 @@ use std::sync::Arc;
 pub struct Device {
     device: ffi::GR_DEVICE,
     queue: ffi::GR_QUEUE,
+    heaps: Vec<HeapInfos>,
+}
+
+/// Information about a memory heap.
+pub struct HeapInfos {
+    id: ffi::GR_UINT,
+    size: usize,
+    page_size: usize,
 }
 
 pub struct Fence<'a> {
@@ -66,9 +74,36 @@ impl Device {
             queue
         };
 
+        let heaps = unsafe {
+            let mut heaps_count = mem::uninitialized();
+            error::check_result(ffi::grGetMemoryHeapCount(device, &mut heaps_count)).unwrap();
+
+            let mut heaps = Vec::with_capacity(heaps_count as usize);
+
+            for id in 0 .. heaps_count {
+                let mut data_size = mem::size_of::<ffi::GR_MEMORY_HEAP_PROPERTIES>() as ffi::GR_SIZE;
+                let mut infos: ffi::GR_MEMORY_HEAP_PROPERTIES = mem::uninitialized();
+                let infos_ptr: *mut ffi::GR_MEMORY_HEAP_PROPERTIES = &mut infos;
+
+                let res = ffi::grGetMemoryHeapInfo(device, id,
+                                                   ffi::GR_INFO_TYPE_MEMORY_HEAP_PROPERTIES,
+                                                   &mut data_size, infos_ptr as *mut _);
+                error::check_result(res).unwrap();
+
+                heaps.push(HeapInfos {
+                    id: id,
+                    size: infos.heapSize as usize,
+                    page_size: infos.pageSize as usize,
+                });
+            }
+
+            heaps
+        };
+
         Arc::new(Device {
             device: device,
             queue: queue,
+            heaps: heaps,
         })
     }
 

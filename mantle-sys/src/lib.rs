@@ -13,6 +13,7 @@ pub type GR_ENUM = libc::uint32_t;
 pub type GR_VOID = libc::c_void;
 pub type GR_FLOAT = libc::c_float;
 pub type GR_BOOL = bool;            // FIXME: 
+pub type GR_GPU_SIZE = libc::size_t;      // FIXME: total guess
 
 pub type GR_PHYSICAL_GPU = libc::uint64_t;      // FIXME: not sure with 32/64bits
 pub type GR_DEVICE = libc::uint64_t;      // FIXME: not sure with 32/64bits
@@ -145,6 +146,25 @@ pub const GR_CMD_BUFFER_OPTIMIZE_DESCRIPTOR_SET_SWITCH: GR_ENUM = 0x00000008;
 
 pub const GR_SHADER_CREATE_ALLOW_RE_Z: GR_FLAGS = 0x00000001;
 
+// GR_INFO_TYPE
+pub const GR_INFO_TYPE_PHYSICAL_GPU_PROPERTIES: GR_ENUM = 0x6100;
+pub const GR_INFO_TYPE_PHYSICAL_GPU_PERFORMANCE: GR_ENUM = 0x6101;
+pub const GR_INFO_TYPE_PHYSICAL_GPU_QUEUE_PROPERTIES: GR_ENUM = 0x6102;
+pub const GR_INFO_TYPE_PHYSICAL_GPU_MEMORY_PROPERTIES: GR_ENUM = 0x6103;
+pub const GR_INFO_TYPE_PHYSICAL_GPU_IMAGE_PROPERTIES: GR_ENUM = 0x6104;
+pub const GR_INFO_TYPE_MEMORY_HEAP_PROPERTIES: GR_ENUM = 0x6200;
+pub const GR_INFO_TYPE_FORMAT_PROPERTIES: GR_ENUM = 0x6300;
+pub const GR_INFO_TYPE_SUBRESOURCE_LAYOUT: GR_ENUM = 0x6400;
+pub const GR_INFO_TYPE_MEMORY_REQUIREMENTS: GR_ENUM = 0x6800;
+pub const GR_INFO_TYPE_PARENT_DEVICE: GR_ENUM = 0x6801;
+pub const GR_INFO_TYPE_PARENT_PHYSICAL_GPU: GR_ENUM = 0x6802;
+
+// GR_HEAP_MEMORY_TYPE
+pub const GR_HEAP_MEMORY_OTHER: GR_ENUM = 0x2f00;
+pub const GR_HEAP_MEMORY_LOCAL: GR_ENUM = 0x2f01;
+pub const GR_HEAP_MEMORY_REMOTE: GR_ENUM = 0x2f02;
+pub const GR_HEAP_MEMORY_EMBEDDED: GR_ENUM = 0x2f03;
+
 pub type GR_ALLOC_FUNCTION = unsafe extern "stdcall" fn(GR_SIZE, GR_SIZE, GR_ENUM) -> *mut GR_VOID;
 pub type GR_FREE_FUNCTION = unsafe extern "stdcall" fn(*mut GR_VOID);
 pub type GR_DBG_MSG_CALLBACK_FUNCTION = unsafe extern "stdcall" fn(GR_ENUM, GR_ENUM, GR_BASE_OBJECT,
@@ -254,6 +274,18 @@ pub struct GR_SHADER_CREATE_INFO {
     pub flags: GR_FLAGS,
 }
 
+#[repr(C)]
+pub struct GR_MEMORY_HEAP_PROPERTIES {
+    pub heapMemoryType: GR_ENUM,
+    pub heapSize: GR_GPU_SIZE,
+    pub pageSize: GR_GPU_SIZE,
+    pub flags: GR_FLAGS,
+    pub gpuReadPerfRating: GR_FLOAT,
+    pub gpuWritePerfRating: GR_FLOAT,
+    pub cpuReadPerfRating: GR_FLOAT,
+    pub cpuWritePerfRating: GR_FLOAT,
+}
+
 extern {
     pub fn grInitAndEnumerateGpus(pAppInfo: *const GR_APPLICATION_INFO,
                                   pAllocCb: *const GR_ALLOC_CALLBACKS, pGpuCount: *mut GR_UINT,
@@ -311,4 +343,9 @@ extern {
 
     pub fn grCreateShader(device: GR_DEVICE, pCreateInfo: *const GR_SHADER_CREATE_INFO,
                           pShader: *mut GR_SHADER) -> GR_RESULT;
+
+    pub fn grGetMemoryHeapCount(device: GR_DEVICE, pCount: *mut GR_UINT) -> GR_RESULT;
+
+    pub fn grGetMemoryHeapInfo(device: GR_DEVICE, heapId: GR_UINT, infoType: GR_ENUM,
+                               pDataSize: *mut GR_SIZE, pData: *mut GR_VOID) -> GR_RESULT;
 }
