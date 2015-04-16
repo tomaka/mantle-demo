@@ -11,44 +11,27 @@ use command_buffer::CommandBuffer;
 use instance::Gpu;
 
 use CommandBufferExt;
+use DeviceExt;
 use MantleObject;
-use QueuesProvider;
 
 use std::mem;
 use std::sync::Arc;
 
 /// Represents a Mantle context.
-#[derive(Clone)]
-pub struct MainDevice {
-    device: Arc<RawDevice>,
-}
-
-impl !Send for MainDevice {}
-impl !Sync for MainDevice {}
-
-#[derive(Clone)]
 pub struct Device {
-    device: Arc<RawDevice>,
-}
-
-pub struct RawDevice {
     device: ffi::GR_DEVICE,
     queue: ffi::GR_QUEUE,
 }
 
-pub trait AsRawDevice {
-    fn as_raw_device(&self) -> &Arc<RawDevice>;
-}
-
 pub struct Fence<'a> {
-    device: &'a RawDevice,
+    device: &'a Device,
     fence: ffi::GR_FENCE,
     wait: bool,
 }
 
-impl MainDevice {
+impl Device {
     /// Builds a new Mantle context for the given GPU.
-    pub fn new(gpu: &Gpu) -> MainDevice {
+    pub fn new(gpu: &Gpu) -> Arc<Device> {
         unsafe {
             let ext: &'static [u8] = b"GR_WSI_WINDOWS\0";       // FIXME: 
             error::check_result(ffi::grGetExtensionSupport(*gpu.get_id(),
@@ -83,18 +66,10 @@ impl MainDevice {
             queue
         };
 
-        MainDevice {
-            device: Arc::new(RawDevice {
-                device: device,
-                queue: queue,
-            }),
-        }
-    }
-
-    pub fn shared(&self) -> Device {
-        Device {
-            device: self.device.clone(),
-        }
+        Arc::new(Device {
+            device: device,
+            queue: queue,
+        })
     }
 
     pub fn submit(&self, commands: &Arc<CommandBuffer>) -> Fence {
@@ -104,7 +79,7 @@ impl MainDevice {
             };
 
             let mut fence = mem::uninitialized();
-            error::check_result(ffi::grCreateFence(self.device.device, &fence_infos,
+            error::check_result(ffi::grCreateFence(self.device, &fence_infos,
                                                    &mut fence)).unwrap();
             fence
         };
@@ -113,35 +88,15 @@ impl MainDevice {
         let commands = [*commands.get_id()];
 
         error::check_result(unsafe {
-            ffi::grQueueSubmit(self.device.queue, 1, commands.as_ptr(), mem.len() as u32,
+            ffi::grQueueSubmit(self.queue, 1, commands.as_ptr(), mem.len() as u32,
                                mem.as_ptr(), fence)
         }).unwrap();
 
         Fence {
-            device: &self.device,
+            device: self,
             fence: fence,
             wait: true,
         }
-    }
-}
-
-impl MantleObject for MainDevice {
-    type Id = ffi::GR_DEVICE;
-
-    fn get_id(&self) -> &ffi::GR_DEVICE {
-        &self.device.device
-    }
-}
-
-impl AsRawDevice for MainDevice {
-    fn as_raw_device(&self) -> &Arc<RawDevice> {
-        &self.device
-    }
-}
-
-impl QueuesProvider for MainDevice {
-    fn get_queue(&self) -> ffi::GR_QUEUE {
-        self.device.queue
     }
 }
 
@@ -149,43 +104,17 @@ impl MantleObject for Device {
     type Id = ffi::GR_DEVICE;
 
     fn get_id(&self) -> &ffi::GR_DEVICE {
-        &self.device.device
-    }
-}
-
-impl AsRawDevice for Device {
-    fn as_raw_device(&self) -> &Arc<RawDevice> {
         &self.device
     }
 }
 
-impl QueuesProvider for Device {
-    fn get_queue(&self) -> ffi::GR_QUEUE {
-        self.device.queue
-    }
-}
-
-impl QueuesProvider for RawDevice {
+impl DeviceExt for Device {
     fn get_queue(&self) -> ffi::GR_QUEUE {
         self.queue
     }
 }
 
-impl AsRawDevice for Arc<RawDevice> {
-    fn as_raw_device(&self) -> &Arc<RawDevice> {
-        self
-    }
-}
-
-impl MantleObject for RawDevice {
-    type Id = ffi::GR_DEVICE;
-
-    fn get_id(&self) -> &ffi::GR_DEVICE {
-        &self.device
-    }
-}
-
-impl Drop for RawDevice {
+impl Drop for Device {
     fn drop(&mut self) {
         let res = unsafe { ffi::grDestroyDevice(self.device) };
         error::check_result(res).unwrap();

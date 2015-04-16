@@ -4,8 +4,7 @@ use error;
 use std::mem;
 use std::sync::Arc;
 
-use device::RawDevice;
-use device::AsRawDevice;
+use device::Device;
 use CommandBufferExt;
 use ImageExt;
 use MantleObject;
@@ -13,20 +12,20 @@ use MantleObject;
 use presentable_image::PresentableImage;
 
 pub struct CommandBuffer {
-    device: Arc<RawDevice>,
+    device: Arc<Device>,
     cmd: ffi::GR_CMD_BUFFER,
     memory_refs: Vec<ffi::GR_MEMORY_REF>,
 }
 
 pub struct CommandBufferBuilder {
-    device: Arc<RawDevice>,
+    device: Arc<Device>,
     cmd: Option<ffi::GR_CMD_BUFFER>,
     memory_refs: Vec<ffi::GR_MEMORY_REF>,
 }
 
 impl CommandBufferBuilder {
     /// Builds a new prototype of a command buffer.
-    pub fn new<D: AsRawDevice>(device: &D) -> CommandBufferBuilder {
+    pub fn new(device: &Arc<Device>) -> CommandBufferBuilder {
         let infos = ffi::GR_CMD_BUFFER_CREATE_INFO {
             queueType: ffi::GR_QUEUE_UNIVERSAL,
             flags: 0,
@@ -34,7 +33,7 @@ impl CommandBufferBuilder {
 
         let cmd_buffer = unsafe {
             let mut cmd = mem::uninitialized();
-            error::check_result(ffi::grCreateCommandBuffer(*device.as_raw_device().get_id(),
+            error::check_result(ffi::grCreateCommandBuffer(*device.get_id(),
                                                            &infos, &mut cmd)).unwrap();
             cmd
         };
@@ -42,7 +41,7 @@ impl CommandBufferBuilder {
         error::check_result(unsafe { ffi::grBeginCommandBuffer(cmd_buffer, 0) }).unwrap();
 
         CommandBufferBuilder {
-            device: device.as_raw_device().clone(),
+            device: device.clone(),
             cmd: Some(cmd_buffer),
             memory_refs: Vec::new(),
         }

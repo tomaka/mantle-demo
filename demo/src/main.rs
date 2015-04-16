@@ -12,7 +12,7 @@ use std::mem;
 use std::ptr;
 
 fn main() {
-    let device = mantle::MainDevice::new(&mantle::get_gpus().nth(0).unwrap());
+    let device = mantle::Device::new(&mantle::get_gpus().nth(0).unwrap());
 
     let window = unsafe { create_window() };
 

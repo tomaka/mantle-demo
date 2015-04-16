@@ -4,8 +4,7 @@ use error;
 use std::mem;
 use std::sync::Arc;
 
-use device::RawDevice;
-use device::AsRawDevice;
+use device::Device;
 use MantleObject;
 
 pub struct Shader {
@@ -13,7 +12,7 @@ pub struct Shader {
 }
 
 impl Shader {
-    pub fn new<D: AsRawDevice>(device: &D, source: &[u8]) -> Arc<Shader> {
+    pub fn new(device: &Arc<Device>, source: &[u8]) -> Arc<Shader> {
         let shader = unsafe {
             let infos = ffi::GR_SHADER_CREATE_INFO {
                 codeSize: source.len() as ffi::GR_SIZE,
@@ -22,7 +21,7 @@ impl Shader {
             };
 
             let mut shader = mem::uninitialized();
-            let res = ffi::grCreateShader(*device.as_raw_device().get_id(), &infos, &mut shader);
+            let res = ffi::grCreateShader(*device.get_id(), &infos, &mut shader);
             error::check_result(res).unwrap();
             shader
         };

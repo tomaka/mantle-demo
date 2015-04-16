@@ -6,19 +6,19 @@ use std::mem;
 use std::ptr;
 use std::sync::Arc;
 
-use device::MainDevice;
+use device::Device;
 use ImageExt;
 use MantleObject;
-use QueuesProvider;
+use DeviceExt;
 
 pub struct PresentableImage {
-    device: MainDevice,
+    device: Arc<Device>,
     image: ffi::GR_IMAGE,
     mem: ffi::GR_GPU_MEMORY,
 }
 
 impl PresentableImage {
-    pub fn new(device: &MainDevice, width: u32, height: u32) -> Arc<PresentableImage> {
+    pub fn new(device: &Arc<Device>, width: u32, height: u32) -> Arc<PresentableImage> {
         let infos = ffi::GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO {
             format: ffi::GR_FORMAT {
                 channelFormat: 8,
