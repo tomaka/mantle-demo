@@ -1,5 +1,3 @@
-#![feature(collections)]
-
 extern crate kernel32;
 extern crate gdi32;
 extern crate user32;
@@ -10,6 +8,9 @@ extern crate mantle;
 
 use std::mem;
 use std::ptr;
+
+use std::ffi::OsStr;
+use std::os::windows::ffi::OsStrExt;
 
 fn main() {
     let device = mantle::Device::new(&mantle::get_gpus().nth(0).unwrap());
@@ -84,8 +85,8 @@ unsafe fn create_window() -> winapi::HWND {
 }
 
 unsafe fn register_window_class() -> Vec<u16> {
-    let class_name: Vec<u16> = "Window Class".utf16_units().chain(Some(0).into_iter())
-        .collect::<Vec<u16>>();
+    let class_name: Vec<u16> = OsStr::new("Window Class").encode_wide().chain(Some(0).into_iter())
+                                                         .collect::<Vec<u16>>();
 
     let class = winapi::WNDCLASSEXW {
         cbSize: mem::size_of::<winapi::WNDCLASSEXW>() as winapi::UINT,
