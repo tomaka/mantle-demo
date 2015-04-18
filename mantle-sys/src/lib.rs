@@ -7,6 +7,7 @@ extern crate winapi;
 pub type GR_CHAR = libc::c_char;
 pub type GR_INT = libc::c_int;      // FIXME: not sure with 32/64bits
 pub type GR_UINT = libc::c_uint;      // FIXME: not sure with 32/64bits
+pub type GR_UINT8 = libc::uint8_t;
 pub type GR_UINT32 = libc::uint32_t;
 pub type GR_SIZE = libc::size_t;
 pub type GR_ENUM = libc::uint32_t;
@@ -15,6 +16,7 @@ pub type GR_FLOAT = libc::c_float;
 pub type GR_BOOL = bool;            // FIXME: 
 pub type GR_GPU_SIZE = libc::size_t;      // FIXME: total guess
 pub type GR_FLAGS = libc::c_uint;       // FIXME: total guess
+pub type GR_SAMPLE_MASK = libc::uint32_t;       // FIXME: total guess
 
 pub type GR_PHYSICAL_GPU = libc::uint64_t;      // FIXME: not sure with 32/64bits
 pub type GR_DEVICE = libc::uint64_t;      // FIXME: not sure with 32/64bits
@@ -27,10 +29,17 @@ pub type GR_FENCE = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_BASE_OBJECT = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_OBJECT = libc::uint64_t;       // FIXME: not sure with 32/64bits
 pub type GR_SHADER = libc::uint64_t;       // FIXME: not sure with 32/64bits
+pub type GR_RASTER_STATE_OBJECT = libc::uint64_t;       // FIXME: not sure with 32/64bits
+pub type GR_VIEWPORT_STATE_OBJECT = libc::uint64_t;       // FIXME: not sure with 32/64bits
+pub type GR_COLOR_BLEND_STATE_OBJECT = libc::uint64_t;       // FIXME: not sure with 32/64bits
+pub type GR_DEPTH_STENCIL_STATE_OBJECT = libc::uint64_t;       // FIXME: not sure with 32/64bits
+pub type GR_MSAA_STATE_OBJECT = libc::uint64_t;       // FIXME: not sure with 32/64bits
 
 pub const GR_MAX_PHYSICAL_GPUS: usize = 4;
 pub const GR_API_VERSION: u32 = 1;      // FIXME: this was guessed
 pub const GR_MAX_MEMORY_HEAPS: usize = 8;
+pub const GR_MAX_VIEWPORTS: usize = 16;     // FIXME: taken from OverV's example
+pub const GR_MAX_COLOR_TARGETS: usize = 16;     // FIXME: taken from OverV's example
 
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
@@ -198,6 +207,67 @@ pub const GR_MEMORY_STATE_DISCARD: GR_ENUM = 0x120c;
 pub const GR_MEMORY_STATE_DATA_TRANSFER_SOURCE: GR_ENUM = 0x120d;
 pub const GR_MEMORY_STATE_DATA_TRANSFER_DESTINATION: GR_ENUM = 0x120e;
 
+// GR_FILL_MODE
+pub const GR_FILL_SOLID: GR_ENUM = 0x2600;
+pub const GR_FILL_WIREFRAME: GR_ENUM = 0x2601;
+
+// GR_CULL_MODE
+pub const GR_CULL_NONE: GR_ENUM = 0x2700;
+pub const GR_CULL_FRONT: GR_ENUM = 0x2701;
+pub const GR_CULL_BACK: GR_ENUM = 0x2702;
+
+// GR_FACE_ORIENTATION
+pub const GR_FRONT_FACE_CCW: GR_ENUM = 0x2800;
+pub const GR_FRONT_FACE_CW: GR_ENUM = 0x2801;
+
+// GR_BLEND
+pub const GR_BLEND_ZERO: GR_ENUM = 0x2900;
+pub const GR_BLEND_ONE: GR_ENUM = 0x2901;
+pub const GR_BLEND_SRC_COLOR: GR_ENUM = 0x2902;
+pub const GR_BLEND_ONE_MINUS_SRC_COLOR: GR_ENUM = 0x2903;
+pub const GR_BLEND_DEST_COLOR: GR_ENUM = 0x2904;
+pub const GR_BLEND_ONE_MINUS_DEST_COLOR: GR_ENUM = 0x2905;
+pub const GR_BLEND_SRC_ALPHA: GR_ENUM = 0x2906;
+pub const GR_BLEND_ONE_MINUS_SRC_ALPHA: GR_ENUM = 0x2907;
+pub const GR_BLEND_DEST_ALPHA: GR_ENUM = 0x2908;
+pub const GR_BLEND_ONE_MINUS_DEST_ALPHA: GR_ENUM = 0x2909;
+pub const GR_BLEND_CONSTANT_COLOR: GR_ENUM = 0x290a;
+pub const GR_BLEND_ONE_MINUS_CONSTANT_COLOR: GR_ENUM = 0x290b;
+pub const GR_BLEND_CONSTANT_ALPHA: GR_ENUM = 0x290c;
+pub const GR_BLEND_ONE_MINUS_CONSTANT_ALPHA: GR_ENUM = 0x290d;
+pub const GR_BLEND_SRC_ALPHA_SATURATE: GR_ENUM = 0x290e;
+pub const GR_BLEND_SRC1_COLOR: GR_ENUM = 0x290f;
+pub const GR_BLEND_ONE_MINUS_SRC1_COLOR: GR_ENUM = 0x2910;
+pub const GR_BLEND_SRC1_ALPHA: GR_ENUM = 0x2911;
+pub const GR_BLEND_ONE_MINUS_SRC1_ALPHA: GR_ENUM = 0x2912;
+
+// GR_BLEND_FUNC
+pub const GR_BLEND_FUNC_ADD: GR_ENUM = 0x2a00;
+pub const GR_BLEND_FUNC_SUBTRACT: GR_ENUM = 0x2a01;
+pub const GR_BLEND_FUNC_REVERSE_SUBTRACT: GR_ENUM = 0x2a02;
+pub const GR_BLEND_FUNC_MIN: GR_ENUM = 0x2a03;
+pub const GR_BLEND_FUNC_MAX: GR_ENUM = 0x2a04;
+
+// GR_COMPARE_FUNC
+pub const GR_COMPARE_NEVER: GR_ENUM = 0x2500;
+pub const GR_COMPARE_LESS: GR_ENUM = 0x2501;
+pub const GR_COMPARE_EQUAL: GR_ENUM = 0x2502;
+pub const GR_COMPARE_LESS_EQUAL: GR_ENUM = 0x2503;
+pub const GR_COMPARE_GREATER: GR_ENUM = 0x2504;
+pub const GR_COMPARE_NOT_EQUAL: GR_ENUM = 0x2505;
+pub const GR_COMPARE_GREATER_EQUAL: GR_ENUM = 0x2506;
+pub const GR_COMPARE_ALWAYS: GR_ENUM = 0x2507;
+
+// GR_STENCIL_OP
+pub const GR_STENCIL_OP_KEEP: GR_ENUM = 0x2b00;
+pub const GR_STENCIL_OP_ZERO: GR_ENUM = 0x2b01;
+pub const GR_STENCIL_OP_REPLACE: GR_ENUM = 0x2b02;
+pub const GR_STENCIL_OP_INC_CLAMP: GR_ENUM = 0x2b03;
+pub const GR_STENCIL_OP_DEC_CLAMP: GR_ENUM = 0x2b04;
+pub const GR_STENCIL_OP_INVERT: GR_ENUM = 0x2b05;
+pub const GR_STENCIL_OP_INC_WRAP: GR_ENUM = 0x2b06;
+pub const GR_STENCIL_OP_DEC_WRAP: GR_ENUM = 0x2b07;
+
 pub type GR_ALLOC_FUNCTION = unsafe extern "stdcall" fn(GR_SIZE, GR_SIZE, GR_ENUM) -> *mut GR_VOID;
 pub type GR_FREE_FUNCTION = unsafe extern "stdcall" fn(*mut GR_VOID);
 pub type GR_DBG_MSG_CALLBACK_FUNCTION = unsafe extern "stdcall" fn(GR_ENUM, GR_ENUM, GR_BASE_OBJECT,
@@ -338,6 +408,93 @@ pub struct GR_MEMORY_STATE_TRANSITION {
     pub regionSize: GR_GPU_SIZE,
 }
 
+#[repr(C)]
+pub struct GR_RASTER_STATE_CREATE_INFO {
+    pub fillMode: GR_ENUM,
+    pub cullMode: GR_ENUM,
+    pub frontFace: GR_ENUM,
+    pub depthBias: GR_INT,
+    pub depthBiasClamp: GR_FLOAT,
+    pub slopeScaledDepthBias: GR_FLOAT,
+}
+
+#[repr(C)]
+pub struct GR_VIEWPORT_STATE_CREATE_INFO {
+    pub viewportCount: GR_UINT,
+    pub scissorEnable: GR_BOOL,
+    pub viewports: [GR_VIEWPORT; GR_MAX_VIEWPORTS],
+    pub scissors: [GR_RECT; GR_MAX_VIEWPORTS],
+}
+
+#[repr(C)]
+pub struct GR_VIEWPORT {
+    pub originX: GR_FLOAT,
+    pub originY: GR_FLOAT,
+    pub width: GR_FLOAT,
+    pub height: GR_FLOAT,
+    pub minDepth: GR_FLOAT,
+    pub maxDepth: GR_FLOAT,
+}
+
+#[repr(C)]
+pub struct GR_RECT {
+    pub offset: GR_OFFSET2D,
+    pub extent: GR_EXTENT2D,
+}
+
+#[repr(C)]
+pub struct GR_OFFSET2D {
+    pub x: GR_INT,
+    pub y: GR_INT,
+}
+
+#[repr(C)]
+pub struct GR_COLOR_BLEND_STATE_CREATE_INFO {
+    pub target: [GR_COLOR_TARGET_BLEND_STATE; GR_MAX_COLOR_TARGETS],
+    pub blendConst: [GR_FLOAT; 4],
+}
+
+#[repr(C)]
+pub struct GR_COLOR_TARGET_BLEND_STATE {
+    pub blendEnable: GR_BOOL,
+    pub srcBlendColor: GR_ENUM,
+    pub destBlendColor: GR_ENUM,
+    pub blendFuncColor: GR_ENUM,
+    pub srcBlendAlpha: GR_ENUM,
+    pub destBlendAlpha: GR_ENUM,
+    pub blendFuncAlpha: GR_ENUM,
+}
+
+#[repr(C)]
+pub struct GR_DEPTH_STENCIL_STATE_CREATE_INFO {
+    pub depthEnable: GR_BOOL,
+    pub depthWriteEnable: GR_BOOL,
+    pub depthFunc: GR_ENUM,
+    pub depthBoundsEnable: GR_BOOL,
+    pub minDepth: GR_FLOAT,
+    pub maxDepth: GR_FLOAT,
+    pub stencilEnable: GR_BOOL,
+    pub stencilReadMask: GR_UINT8,
+    pub stencilWriteMask: GR_UINT8,
+    pub front: GR_DEPTH_STENCIL_OP,
+    pub back: GR_DEPTH_STENCIL_OP,
+}
+
+#[repr(C)]
+pub struct GR_DEPTH_STENCIL_OP {
+    pub stencilFailOp: GR_ENUM,
+    pub stencilPassOp: GR_ENUM,
+    pub stencilDepthFailOp: GR_ENUM,
+    pub stencilFunc: GR_ENUM,
+    pub stencilRef: GR_UINT8,
+}
+
+#[repr(C)]
+pub struct GR_MSAA_STATE_CREATE_INFO {
+    pub samples: GR_UINT,
+    pub sampleMask: GR_SAMPLE_MASK,
+}
+
 extern {
     pub fn grInitAndEnumerateGpus(pAppInfo: *const GR_APPLICATION_INFO,
                                   pAllocCb: *const GR_ALLOC_CALLBACKS, pGpuCount: *mut GR_UINT,
@@ -412,4 +569,22 @@ extern {
 
     pub fn grCmdPrepareMemoryRegions(cmdBuffer: GR_CMD_BUFFER, transitionCount: GR_UINT,
                                      pStateTransitions: *const GR_MEMORY_STATE_TRANSITION);
+
+    pub fn grCreateRasterState(device: GR_DEVICE, pCreateInfo: *const GR_RASTER_STATE_CREATE_INFO,
+                               pState: *const GR_RASTER_STATE_OBJECT) -> GR_RESULT;
+
+    pub fn grCreateViewportState(device: GR_DEVICE,
+                                 pCreateInfo: *const GR_VIEWPORT_STATE_CREATE_INFO,
+                                 pState: *const GR_VIEWPORT_STATE_OBJECT) -> GR_RESULT;
+
+    pub fn grCreateColorBlendState(device: GR_DEVICE,
+                                   pCreateInfo: *const GR_COLOR_BLEND_STATE_CREATE_INFO,
+                                   pState: *const GR_COLOR_BLEND_STATE_OBJECT) -> GR_RESULT;
+
+    pub fn grCreateDepthStencilState(device: GR_DEVICE,
+                                     pCreateInfo: *const GR_DEPTH_STENCIL_STATE_CREATE_INFO,
+                                     pState: *const GR_DEPTH_STENCIL_STATE_OBJECT) -> GR_RESULT;
+
+    pub fn grCreateMsaaState(device: GR_DEVICE, pCreateInfo: *const GR_MSAA_STATE_CREATE_INFO,
+                             pState: *const GR_MSAA_STATE_OBJECT) -> GR_RESULT;
 }
